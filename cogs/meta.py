@@ -301,11 +301,10 @@ class Meta:
         """Details about this bot"""
 
         e = discord.Embed(
-            description="I'm a bot made by perryprog#9657. I'm specifically "
-                        "designed for the [TranscribersOfReddit guild](https:/"
-                        "/www.reddit.com/r/TranscribersOfReddit/wiki/index). "
-                        "I do, however, have some helpful utilities for things "
-                        "outside of ToR.",
+            description="I'm a bot created by perryprog#9657, originally made "
+						"for the Transcribers of Reddit.\n"
+                        "This is a modified copy hosted by Samrux#3980 with "
+                        "permission from perry for personal use. Thank you!",
             color=ctx.author.color,
             title='ToR Genius'
         )

@@ -179,3 +179,4 @@ venv.bak/
 
 # WHY DO I NEED TO DO THIS WUT EVEN I DON'T UNDERSTAND
 !cogs/utils/config.py
+config.py.save

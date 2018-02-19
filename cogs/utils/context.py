@@ -1,11 +1,5 @@
-# Original work Copyright (c) 2015 Rapptz (https://github.com/Rapptz/RoboDanny)
-# Modified work Copyright (c) 2017 Perry Fraser
-#
-# Licensed under the MIT License. https://opensource.org/licenses/MIT
 import asyncio
 from collections import namedtuple
-
-import praw
 from discord.ext import commands
 
 
@@ -36,13 +30,11 @@ class Context(commands.Context):
         self.token = 'A dead meme'
         self.emojis = namedtuple(
             'Emojis', 'check xmark white_check cross_mark tick_yes')\
-            ('<:check:411592769308721153>',
-             '<:xmark:411592769619099658>',
+            ('<:check:410612082929565696>',
+             '<:cross:410612082988285952>',
              '\N{WHITE HEAVY CHECK MARK}',
              '\N{CROSS MARK}',
              '<:tickYes:404815005423501313>')
-
-        self.r = praw.Reddit('main', user_agent='ToR Discord Bot')
 
     async def _acquire(self, timeout):
         if self.db is None:

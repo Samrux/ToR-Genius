@@ -150,8 +150,9 @@ class Admin:
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}:' \
                f' {e}```'
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def sh(self, ctx, *, cmd):
+        """Runs a shell script."""
         # https://github.com/khazhyk/dango.py/blob/master/plugins/debug.py#L144-L153
         await ctx.channel.trigger_typing()
         sout, serr = await run_subprocess(cmd)
@@ -188,7 +189,7 @@ class Admin:
         else:
             await ctx.auto_react()
 
-    @commands.command(name='reload', hidden=True, aliases=['r'])
+    @commands.command(name='reload', aliases=['r'], hidden=True)
     async def _reload(self, ctx, *, module):
         """Reloads a module."""
         if not module.startswith('cogs.'):
@@ -211,7 +212,7 @@ class Admin:
         return f'```py\n{err.text}{"↑":>{err.offset}}\n{type(err).__name__}:' \
                f' {err}```'
 
-    @commands.command(pass_context=True, hidden=True, name='eval')
+    @commands.command(pass_context=True, name='eval')
     async def _eval(self, ctx, *, body: str):
         """Evaluates some code"""
 
@@ -259,7 +260,7 @@ class Admin:
 
             await self.send_response(ctx, value, to_compile, extra=ret)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True)
     async def calc(self, ctx, *, body: str):
         """Evaluates some code with sympy imported"""
 
@@ -313,7 +314,7 @@ class Admin:
 
             await self.send_response(ctx, value, to_compile, extra=ret)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True)
     async def repl(self, ctx):
         """Launches an interactive REPL session."""
         variables = {
@@ -410,12 +411,12 @@ class Admin:
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def explode(self, ctx):
         await ctx.auto_react()
         await ctx.bot.logout()
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def game(self, ctx, *, game: str = None):
         game = game if game else random.choice(self.bot.game_list)
 
@@ -430,14 +431,14 @@ class Admin:
 
         await ctx.auto_react()
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def set_nick(self, ctx, *, nick: str):
         await ctx.guild.me.edit(nick=nick)
         await ctx.auto_react()
 
     # from
     # https://github.com/khazhyk/dango.py/blob/master/plugins/debug.py#L155-L166
-    @commands.command(name="as", hidden=True)
+    @commands.command(name="as")
     async def _as(self, ctx, who: commands.MemberConverter, *, cmd):
         """Run a command impersonating another user."""
         fake_msg = copy.copy(ctx.message)

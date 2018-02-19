@@ -28,13 +28,10 @@ initial_extensions = [
     'cogs.fun',
     'cogs.admin',
     'cogs.meta',
-    'cogs.reddit',
-    'cogs.github',
     'cogs.mod',
     'cogs.timezone',
     'cogs.info',
     'cogs.other',
-    'cogs.discrim',
     'cogs.search',
     'cogs.humanize',
     'cogs.jokes',
@@ -134,7 +131,7 @@ class TorGenius(commands.Bot):
         This is just so I can get prefixes that aren't the @bot ones
         """
         guild_id = guild.id
-        return self.prefixes.get(guild_id, ['-'])
+        return self.prefixes.get(guild_id, [';'])
 
     async def set_guild_prefixes(self, guild, prefixes):
         if len(prefixes) == 0:
