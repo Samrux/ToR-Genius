@@ -162,6 +162,8 @@ class TorGenius(commands.Bot):
         ctx = await self.get_context(message, cls=Context)
 
         if ctx.command is None:
+            if ("just monika" in message.content.lower()):
+                await ctx.send("Just Monika")
             return
 
         async with ctx.acquire(ctx, None):
