@@ -130,7 +130,11 @@ class Fun:
     @commands.command()
     async def b(self, ctx, *, message):
         """This is a bad idea."""
+        if 'b' in message:
+            return await ctx.send(message.replace('b', ':b:'))
+
         message = list(message)
+
         message[random.randint(0, len(message)-1)] = ':b:'
         await ctx.send(''.join(message))
 
