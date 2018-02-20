@@ -432,9 +432,14 @@ class Admin:
         await ctx.auto_react()
 
     @commands.command()
-    async def set_nick(self, ctx, *, nick: str):
+    async def setname(self, ctx, *, nick: str):
         await ctx.guild.me.edit(nick=nick)
         await ctx.auto_react()
+		
+    @commands.command()
+    async def setavatar(self, ctx, *, file: str):
+        with open(file, 'rb') as f:
+            await self.bot.user.edit(avatar = f.read())
 
     # from
     # https://github.com/khazhyk/dango.py/blob/master/plugins/debug.py#L155-L166
