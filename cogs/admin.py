@@ -791,4 +791,5 @@ class Plural:
 
 
 def setup(bot):
-bot.add_cog(Admin(bot))
+    bot.add_cog(Admin(bot))
+    
