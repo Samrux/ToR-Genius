@@ -83,7 +83,7 @@ class Search:
             p = EmbedPages(ctx, embeds=embed_images)
             await p.paginate()
 
-    @commands.command()
+    @commands.command(aliases=['quick,'])
     async def quick(self, ctx, *, query):
         """Do a quick wolframalpha query, with a short response"""
         await ctx.channel.trigger_typing()
