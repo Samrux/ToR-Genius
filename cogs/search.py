@@ -38,15 +38,18 @@ class Search:
         t = Texttable()
         data = []
         images = []
-        for pod in res.pods:
-            sub_data = []
-            for sub in pod.subpods:
-                if sub.plaintext:
-                    sub_data.append(sub.plaintext)
-                if hasattr(sub, 'img'):
-                    images.append(sub['img']['@src'])
-                    # sub_data.append(sub['img']['@alt'])
-            data.append(sub_data)
+        try:
+            for pod in res.pods:
+                sub_data = []
+                for sub in pod.subpods:
+                    if sub.plaintext:
+                        sub_data.append(sub.plaintext)
+                    if hasattr(sub, 'img'):
+                        images.append(sub['img']['@src'])
+                        # sub_data.append(sub['img']['@alt'])
+                data.append(sub_data)
+        except AttributeError:
+            return await ctx.send('No results found.')
 
         embed_images = [
             discord.Embed().set_image(url=image) for image in images

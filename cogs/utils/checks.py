@@ -16,12 +16,30 @@ from discord.ext import commands
 # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/utils/checks.py
 
 
-async def check_permissions(ctx, perms, *, check=all):
+async def check_permissions(ctx, perms, *, check=all, check_self=False,
+                            check_both=False):
     owner = await ctx.bot.is_owner(ctx.author)
-    if owner:
+    if owner and not check_self and not check_both:
         return True
 
-    resolved = ctx.channel.permissions_for(ctx.author)
+    if check_both:
+        resolved1 = ctx.channel.permissions_for(ctx.author)
+        resolved1_check = check(
+            getattr(resolved1, name, None) == value for name, value in
+            perms.items()
+        )
+
+        resolved2 = ctx.channel.permissions_for(ctx.guild.me)
+        resolved2_check = check(
+            getattr(resolved2, name, None) == value for name, value in
+            perms.items()
+        )
+
+        return (resolved1_check or owner) and resolved2_check
+
+    resolved = ctx.channel.permissions_for(
+        ctx.author if not check_self else ctx.guild.me
+    )
     return check(
         getattr(resolved, name, None) == value for name, value in perms.items()
     )

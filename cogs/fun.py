@@ -1,16 +1,22 @@
 # Copyright (c) 2017 Perry Fraser
 #
 # Licensed under the MIT License. https://opensource.org/licenses/MIT
-
-
 import logging
 import random
 
 from discord.ext import commands
 
+from cogs.admin import gist_upload
+from cogs.utils import db
 from cogs.utils.checks import tor_only
+from cogs.utils.encode_operations import EncodeOperations
 
 log = logging.getLogger(__name__)
+
+
+class CounterDB(db.Table, table_name='counters'):
+    name = db.Column(db.String, primary_key=True)
+    count = db.Column(db.Integer(big=True))
 
 
 class Fun:
@@ -122,6 +128,7 @@ class Fun:
 
     @commands.command(hidden=True)
     async def this(self, ctx):
+        """memes"""
         if ctx.prefix != 'de;et ':
             return
 
@@ -135,8 +142,46 @@ class Fun:
 
         message = list(message)
 
-        message[random.randint(0, len(message)-1)] = ':b:'
+        message[random.randint(0, len(message) - 1)] = ':b:'
         await ctx.send(''.join(message))
+
+    # noinspection SpellCheckingInspection
+    @commands.command(aliases=['rencode', 'encode'])
+    async def random_encode(self, ctx, message, iterations: int = 4):
+        """(prob won't work) randomly encode a string using a number of methods.
+
+        Hint: Binary is utf-8."""
+        # Not using context manager because the typing remains after sending
+        # a message. #blamedanny
+
+        if iterations > 10:
+            return await ctx.send("You can't do that many interations.")
+
+        await ctx.channel.trigger_typing()
+
+        for _ in range(1, iterations):
+            message = getattr(
+                EncodeOperations,
+                random.choice(
+                    [opt for opt in dir(EncodeOperations)
+                     if not opt.startswith('__')])
+            )(message)
+
+        if len(message) > 600:
+            key = await gist_upload(
+                {'encoding': {'content': message}}
+            )
+
+            await ctx.send(key)
+        else:
+            await ctx.send(f'```{message}```')
+
+    @staticmethod
+    async def on_message(message):
+        if message.channel.id == 417369794883354625:
+            # noinspection SpellCheckingInspection
+            if 'boing' not in message.content.lower():
+                await message.delete()
 
 
 def setup(bot):

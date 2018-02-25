@@ -76,6 +76,12 @@ class Context(commands.Context):
         command = command or self.command.qualified_name
         await self.invoke(cmd, command=command)
 
+    async def run_command(self, command, *args, **kwargs):
+        """Run a command from a string"""
+
+        command = self.bot.get_command(command)
+        await self.invoke(command, *args, **kwargs)
+
     async def prompt(self, message, *, timeout=60.0, delete_after=True,
                      reacquire=True, author_id=None, needs_mod=False):
         """An interactive reaction confirmation dialog.

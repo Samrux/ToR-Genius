@@ -6,12 +6,14 @@
 # Help command from R. Danny, along with feedback, pm, and prefixes
 import inspect
 import os
+import re
+import time
 
 import discord
 from discord.ext import commands
 
 from cogs.utils.checks import is_mod
-from .utils.paginator import HelpPaginator, Pages
+from .utils.paginator import HelpPaginator, Pages, CannotPaginate
 
 
 class Prefix(commands.Converter):
@@ -29,6 +31,9 @@ class Meta:
 
     def __init__(self, bot):
         self.bot = bot
+
+        value = getattr(bot, 'help_fallback', None)
+        self.bot.help_fallback = bot.get_command('help') if not value else value
         bot.remove_command('help')
 
     @staticmethod
@@ -43,25 +48,38 @@ class Meta:
         """Helps you out a bit ;)"""
         # noinspection PyBroadException
         try:
-            if command is None:
-                p = await HelpPaginator.from_bot(ctx)
-            else:
-                entity = self.bot.get_cog(command) \
-                         or self.bot.get_command(command)
-
-                if entity is None:
-                    clean = command.replace('@', '@ ')  # non breaking space
-                    return await ctx.send(
-                        f'Command or category "{clean}" not found'
-                    )
-                elif isinstance(entity, commands.Command):
-                    p = await HelpPaginator.from_command(ctx, entity)
+            if ctx.me.permissions_in(ctx.channel).add_reactions:
+                if command is None:
+                    p = await HelpPaginator.from_bot(ctx)
                 else:
-                    p = await HelpPaginator.from_cog(ctx, entity)
+                    entity = self.bot.get_cog(command) \
+                             or self.bot.get_command(command)
 
-            await p.paginate()
-        except Exception as e:
-            ctx.send(f'```\n{e}\n```')
+                    if entity is None:
+                        clean = command.replace('@', '@ ')  # non breaking space
+                        return await ctx.send(
+                            f'Command or category "{clean}" not found'
+                        )
+                    elif isinstance(entity, commands.Command):
+                        p = await HelpPaginator.from_command(ctx, entity)
+                    else:
+                        p = await HelpPaginator.from_cog(ctx, entity)
+
+                await p.paginate()
+            else:
+                # await ctx.invoke(self.bot.help_fallback,
+                #                  command)
+                if command:
+                    await self.bot.help_fallback.callback(
+                        ctx, *command.split(' ')
+                    )
+                else:
+                    await self.bot.help_fallback.callback(ctx)
+
+                await ctx.auto_react()
+
+        except CannotPaginate as e:
+            ctx.send(e)
 
     @commands.group(name='prefix', invoke_without_command=True)
     async def prefix(self, ctx):
@@ -78,7 +96,11 @@ class Meta:
         # Don't list the mention prefix twice
         del prefixes[1]
 
-        p = Pages(ctx, entries=prefixes)
+        p = Pages(
+            ctx,
+            entries=[f'`{p[0]}`' + (' (regex)' if p[1] else '')
+                     for p in prefixes]
+        )
         await p.paginate()
 
     # Ignore extra for when people forget to quote
@@ -87,7 +109,7 @@ class Meta:
     # add multiple prefixes or they wanted to add one multi-word prefix.
     @is_mod()
     @prefix.command(name='add', ignore_extra=False)
-    async def prefix_add(self, ctx, prefix: Prefix):
+    async def prefix_add(self, ctx, prefix: Prefix, regex: bool = False):
         """Appends a prefix to the list of custom prefixes.
 
 
@@ -111,8 +133,19 @@ class Meta:
 
         # Error checking in Prefix class (top o' file)
 
+        if regex:
+            try:
+                # noinspection PyTypeChecker
+                reg = re.compile(prefix)
+
+                if reg.groups < 1:
+                    return await ctx.send('The regex needs at least '
+                                          'one capture group.')
+            except re.error:
+                return await ctx.send('That regex is invalid. Sorry.')
+
         prefixes = self.bot.get_other_prefixes(ctx.guild)
-        prefixes.append(prefix)
+        prefixes.append([prefix, regex])
 
         try:
             await self.bot.set_guild_prefixes(ctx.guild, prefixes)
@@ -121,6 +154,28 @@ class Meta:
             await ctx.send(e)
         else:
             await ctx.auto_react()
+
+        if regex:
+            await ctx.send('You just added a regex prefix. These can break. '
+                           'In the case it does break, you can ping the bot '
+                           'followed by "prefix reset" (or clear) and the '
+                           'prefixes will be reset.')
+
+    async def on_message(self, message):
+
+        # dumb pycharm
+        # noinspection PyUnusedLocal
+        user_id = self.bot.user.id
+        reg = re.match(f'<@!?{user_id}> prefix (reset|clear)', message.content)
+        if reg:
+            if not message.author.permissions_in(message.channel).ban_members:
+                raise commands.CheckFailure()
+            if reg.groups()[0] == 'reset':
+                await self.bot.set_guild_prefixes(message.guild, [['-', False]])
+            else:
+                await self.bot.set_guild_prefixes(message.guild, [])
+
+            await message.channel.send('Hard reset prefixes.')
 
     @prefix_add.error
     async def prefix_add_error(self, ctx, error):
@@ -144,9 +199,10 @@ class Meta:
         """
 
         prefixes = self.bot.get_other_prefixes(ctx.guild)
+        prefixes_only = [p[0] for p in self.bot.get_other_prefixes(ctx.guild)]
 
         try:
-            prefixes.remove(prefix)
+            del prefixes[prefixes_only.index(prefix)]
         except ValueError:
             await ctx.auto_react('🚫')
             await ctx.send("That's not one of my prefixes, sorry!")
@@ -173,15 +229,23 @@ class Meta:
     async def prefix_reset(self, ctx):
         """Resets to the default prefix, `-`."""
 
-        await self.bot.set_guild_prefixes(ctx.guild, ['-'])
+        await self.bot.set_guild_prefixes(ctx.guild, [['-', False]])
         await ctx.auto_react()
 
     @commands.command(aliases=['pong'])
     async def ping(self, ctx):
         """What do you think"""
-        await ctx.send(
-            f'Pong! {round(self.bot.latency*1000, 2):,}ms of latency! 🏓'
+
+        before = time.monotonic()
+        m = await ctx.send(
+            f'Pong! {round(self.bot.latency*1000, 2):,}ms of Discord WebSocket '
+            f'latency! 🏓'
         )
+        after = time.monotonic()
+
+        await m.edit(content=f'{m.content.strip("! 🏓")}, '
+                             f'{round((after-before)*1000, 2)}ms of message '
+                             f'latency! 🏓')
 
     @commands.command(aliases=['fb'])
     @commands.cooldown(rate=1, per=2 * 60, type=commands.BucketType.user)
@@ -307,6 +371,24 @@ class Meta:
                         "permission from perry for personal use. Thank you!",
             color=ctx.author.color,
             title='ToR Genius'
+        )
+
+        e.add_field(name='Server', value='[Join the server!]'
+                                         '(https://discord.gg/fhefJb2)')
+
+        e.add_field(
+            name='Transcribers Of Reddit',
+            value='Transcribers of Reddit is a group of Redditors that are '
+                  'making the internet more accessible, one image at a time. '
+                  'Read more about them [here]('
+                  'https://www.reddit.com/r/TranscribersOfReddit/wiki/index). '
+                  'Join the Discord Guild [here.](https://discord.gg/b5DqZXq)'
+        )
+
+        e.add_field(
+            name='Invite',
+            value='[Click here](https://discordapp.com/api/oauth2/authorize?cli'
+                  'ent_id=401477146511409183&permissions=8192&scope=bot)'
         )
 
         # blah blah hard coding is bad blah

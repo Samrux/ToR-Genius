@@ -7,18 +7,21 @@
 
 
 import asyncio
-import copy
+import datetime
 import logging
 import random
+import re
 import sys
 import traceback
 
 import discord
 from discord.ext import commands
+from discord.ext.commands.view import StringView
 
 import config
 from cogs.utils.config import Config
 from cogs.utils.context import Context
+from cogs.utils.paginator import CannotPaginate
 
 description = "I'm a bot that does stuff"
 
@@ -37,7 +40,8 @@ initial_extensions = [
     'cogs.jokes',
     'cogs.bostonlib',
     'cogs.custom',
-    'cogs.logging'
+    'cogs.logging',
+    'cogs.tracking'
 ]
 
 
@@ -50,6 +54,9 @@ def _prefix(bot, msg):
         base.extend(['-', ';', 'tor ', ''])
     else:
         base.extend(bot.prefixes.get(msg.guild.id, ['-']))
+
+    # None of these are regexs
+    base = [p if isinstance(p, list) else [p, False] for p in base]
 
     return base
 
@@ -69,8 +76,9 @@ class TorGenius(commands.Bot):
         self.game_list = ['corn', 'k', 'never gonna...', 'serdeff',
                           'lauye9r v7&^*^*111', 'no', 'no u', 'farts r funny']
 
-        self.add_command(self.do)
         self.token = 'A dead meme'
+
+        self.lockdown = {}
 
         self.prefixes = Config('prefixes.json')
 
@@ -81,6 +89,11 @@ class TorGenius(commands.Bot):
             except Exception:
                 print(f'Failed to load extension {extension}.', file=sys.stderr)
                 traceback.print_exc()
+
+    # convenience prop
+    @property
+    def config(self):
+        return __import__('config')
 
     async def on_command_error(self, ctx, error):
 
@@ -110,7 +123,11 @@ class TorGenius(commands.Bot):
                 f'{error.original.__class__.__name__}: {error.original}',
                 file=sys.stderr
             )
+        elif isinstance(error, CannotPaginate):
+            await ctx.send(error)
         elif isinstance(error, commands.CheckFailure):
+            if self.lockdown.get(ctx.channel, None):
+                return
             if ctx.command.name == 'calc':
                 return await ctx.send(f'You are not allowed to use this '
                                       f'command. If you want to do some math, '
@@ -146,17 +163,82 @@ class TorGenius(commands.Bot):
         else:
             await self.prefixes.put(
                 guild.id,
-                sorted(set(prefixes), reverse=True)
+                # maybe a bad idea not to set this anymore. eh.
+                sorted(prefixes, reverse=True, key=lambda p: p[0])
             )
 
     async def on_ready(self):
         print(f'Ready: {self.user} (ID: {self.user.id})')
+
+        if not hasattr(self, 'uptime'):
+            # noinspection PyAttributeOutsideInit
+            self.uptime = datetime.datetime.now()
 
         game = random.choice(self.game_list)
 
         await self.change_presence(
             game=(discord.Game(name=game))
         )
+
+    async def get_context(self, message, *, cls=Context):
+        view = StringView(message.content)
+        ctx = cls(prefix=None, view=view, bot=self, message=message)
+
+        if self._skip_check(message.author.id, self.user.id):
+            return ctx
+
+        prefix = await self.get_prefix(message)
+        invoked_prefix = prefix
+
+        if isinstance(prefix, str):
+            if not view.skip_string(prefix):
+                return ctx
+        elif isinstance(prefix, list) \
+                and any([isinstance(p, list) for p in prefix]):
+            # Regex time
+            for p in prefix:
+                if isinstance(p, list):
+                    if p[1]:
+                        # regex prefix parsing
+                        reg = re.match(p[0], message.content)
+                        if reg:
+
+                            if message.content == reg.groups()[0]:
+                                # ignore * prefixes
+                                continue
+
+                            # Matches, this is the prefix
+                            invoked_prefix = p
+
+                            # redo the string view with the capture group
+                            view = StringView(reg.groups()[0])
+
+                            invoker = view.get_word()
+                            ctx.invoked_with = invoker
+                            ctx.prefix = invoked_prefix
+                            ctx.command = self.all_commands.get(invoker)
+                            ctx.view = view
+                            return ctx
+                    else:
+                        # regex has highest priority or something idk
+                        # what I'm doing help
+                        continue
+
+            # No prefix found, use the branch below
+            prefix = [p[0] for p in prefix if not p[1]]
+            invoked_prefix = discord.utils.find(view.skip_string, prefix)
+            if invoked_prefix is None:
+                return ctx
+        else:
+            invoked_prefix = discord.utils.find(view.skip_string, prefix)
+            if invoked_prefix is None:
+                return ctx
+
+        invoker = view.get_word()
+        ctx.invoked_with = invoker
+        ctx.prefix = invoked_prefix
+        ctx.command = self.all_commands.get(invoker)
+        return ctx
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
@@ -186,20 +268,9 @@ class TorGenius(commands.Bot):
     def run(self):
         super().run(config.token, reconnect=True)
 
+    # ur face is a redeclaration
+    # noinspection PyRedeclaration
     @property
     def config(self):
         return __import__('config')
 
-    # Not important, will fix later
-    @commands.command(hidden=True, enabled=False)
-    @commands.is_owner()
-    async def do(self, ctx, times: int, *, command):
-        """Repeats a command a specified number of times."""
-        msg = copy.copy(ctx.message)
-        msg.content = command
-
-        new_ctx = await self.get_context(msg, cls=Context)
-        new_ctx.db = ctx.db
-
-        for i in range(times):
-            await new_ctx.reinvoke()
