@@ -82,15 +82,22 @@ class Mod:
         # noinspection PyShadowingNames
         async def complex_cleanup(ctx, limit):
             # `startswith` can't take a list, but it can take a tuple...
-            prefix_tuple = tuple(self.bot.get_guild_prefixes(ctx.guild))
+            prefix_tuple = self.bot.get_guild_prefixes(ctx.guild)
+
+            def check(m):
+                for prefix in prefix_tuple:
+                    if prefix[1]:
+                        if re.match(prefix[0], m.content):
+                            return True
+                    else:
+                        if m.content.startswith(prefix[0]):
+                            return True
+
+                return False
 
             deleted = await ctx.channel.purge(
                 limit=limit,
-                check=(
-                    lambda m:
-                    m.content.startswith(prefix_tuple)
-                    or m.author == ctx.me
-                )
+                check=check
             )
 
             return Counter(m.author.display_name for m in deleted)

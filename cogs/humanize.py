@@ -11,7 +11,7 @@ class Humanize:
 
     @staticmethod
     async def __error(ctx, err):
-        if isinstance(err, ValueError):
+        if isinstance(err, (ValueError, commands.BadArgument)):
             await ctx.send("Couldn't parse input")
 
     @commands.group(aliases=['human', 'hu', 'humanise'])
@@ -21,13 +21,13 @@ class Humanize:
             await ctx.show_help('humanize')
 
     @humanize.command(aliases=['int', 'i', 'n'])
-    async def num(self, ctx, *, val):
+    async def num(self, ctx, *, val: float):
         """Convert a number into a word-like number."""
         await ctx.send(humanize.intword(val))
 
     # noinspection SpellCheckingInspection
     @humanize.command(aliases=['intc', 'ic', 'nc'])
-    async def numcomma(self, ctx, *, val):
+    async def numcomma(self, ctx, *, val: float):
         """Comma seperate a number."""
         await ctx.send(humanize.intcomma(val))
 
@@ -50,18 +50,18 @@ class Humanize:
         await ctx.send(humanize.naturaldate(parse(val)))
 
     @humanize.command(aliases=['size'])
-    async def filesize(self, ctx, *, val):
+    async def filesize(self, ctx, *, val: float):
         """Convert a filesize into a more readable """
         await ctx.send(humanize.naturalsize(val))
 
     @humanize.command(aliases=['bsize'])
-    async def binarysize(self, ctx, *, val):
+    async def binarysize(self, ctx, *, val: float):
         """Convert a filesize into a more human readable binary filesize"""
         await ctx.send(humanize.naturalsize(val, binary=True))
 
     # noinspection SpellCheckingInspection
     @humanize.command(aliases=['fraction', 'frac', 'fra'])
-    async def fractional(self, ctx, *, val):
+    async def fractional(self, ctx, *, val: float):
         """Convert a decimal into a more readable fraction"""
         await ctx.send(humanize.fractional(val))
 
