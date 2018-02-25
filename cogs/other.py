@@ -199,6 +199,10 @@ class Other:
 
                 await p.paginate()
 
+    @commands.command()
+    async def cheers(self, ctx)
+        await ctx.send("Cheers!)
+                
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
     async def blame(self, ctx, *, img: AvatarOrOnlineImageOrText = None):
