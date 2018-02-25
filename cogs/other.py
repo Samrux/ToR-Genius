@@ -200,8 +200,8 @@ class Other:
                 await p.paginate()
 
     @commands.command()
-    async def cheers(self, ctx)
-        await ctx.send("Cheers!)
+    async def cheers(self, ctx):
+        await ctx.send('Cheers!')
                 
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
