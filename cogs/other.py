@@ -199,7 +199,7 @@ class Other:
 
                 await p.paginate()
 
-    @commands.command()
+    @commands.command(aliases=['Cheers'])
     async def cheers(self, ctx):
         await ctx.send('Cheers!')
                 
