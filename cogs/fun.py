@@ -134,7 +134,7 @@ class Fun:
 
         await ctx.send('tor sh rm -rf .')
 
-    @commands.command()
+    @commands.command(aliases=['B', ':b:'])
     async def b(self, ctx, *, message):
         """This is a bad idea."""
         if 'b' in message:
