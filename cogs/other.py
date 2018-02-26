@@ -313,10 +313,9 @@ class Other:
         bio.seek(0)
         await ctx.send(file=discord.File(bio, filename='floor.png'))
 
-    # noinspection PyUnresolvedReferences
     @commands.command(aliases=['car'])
     async def highway(self, ctx, img: AvatarOrOnlineImageOrText,
-                      first_option, *, second_option):
+                      first_option, second_option):
         """Generate a "Left Exit 12 Off Ramp" meme."""
 
         img, _ = img
