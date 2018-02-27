@@ -32,13 +32,11 @@ initial_extensions = [
     'cogs.admin',
     'cogs.meta',
     'cogs.mod',
-    'cogs.timezone',
     'cogs.info',
     'cogs.other',
     'cogs.search',
     'cogs.humanize',
     'cogs.jokes',
-    'cogs.bostonlib',
     'cogs.custom',
     'cogs.logging',
     'cogs.tracking'

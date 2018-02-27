@@ -31,12 +31,18 @@ class CustomCommands:
         self.reload_globals()
 
     @commands.group(aliases=['c', 'tag', 't'], invoke_without_command=True)
-    async def custom(self, ctx, *, name: CommandName):
+    async def custom(self, ctx, *, name: CommandName = None):
         """Basic tagging like thing just for me."""
-        if name not in self.config:
-            await ctx.send("That custom command doesn't exist")
+        if name is not None:
+            reply = ''
+            for key, value in [(k, v) for k, v in self.config if v['global']]:
+                reply += ('' if reply == '' else ', ') + key
+            await ctx.send(f"```{reply}```")
         else:
-            await ctx.send(self.config[name]['text'])
+            if name not in self.config:
+                await ctx.send("That custom command doesn't exist")
+            else:
+                await ctx.send(self.config[name]['text'])
 
     @custom.command(aliases=['a'])
     @commands.is_owner()
@@ -46,7 +52,7 @@ class CustomCommands:
             return await ctx.send(
                 f'There already is a custom command called {name}.'
             )
-        await self.config.put(name, {'text': content, 'global': False})
+        await self.config.put(name, {'text': content, 'global': True})
         await ctx.auto_react()
 
     @custom.command(aliases=['rm', 'del'])
@@ -96,46 +102,40 @@ class CustomCommands:
             return await ctx.send('No results found.')
         await p.paginate()
 
-    @custom.command(aliases=['g', 'gt'])
-    async def global_toggle(self, ctx, *, name):
-        """Toggle if the command is a global (-command_name) vs sub command
-        command (-c command_name)"""
+#   @custom.command(aliases=['g', 'gt'])
+#   async def global_toggle(self, ctx, *, name):
+#       """Toggle if the command is a global (-command_name) vs sub command
+#       command (-c command_name)"""
+#
+#       if name not in self.config:
+#           return await ctx.send(f"That custom command doesn't exist")
+#
+#       if self.bot.get_command(name):
+#           possible = self.config.get(name, None)
+#           if not None and not possible['global']:
+#               return await ctx.send('That command already exists, so you '
+#                                     'can\'t make this custom one global.')
+#
+#       state = self.config[name]['global']
+#       text = self.config[name]['text']
+#
+#       await self.config.put(
+#           name,
+#           {
+#               'text': text,
+#               'global': not state
+#           }
+#       )
+#
+#       if state:
+#           self.bot.remove_command(name)
+#       else:
+#           self.bot.add_command(self.gen_command(name, text))
+#
+#       await ctx.auto_react()
 
-        if name not in self.config:
-            return await ctx.send(f"That custom command doesn't exist")
-
-        if self.bot.get_command(name):
-            possible = self.config.get(name, None)
-            if not None and not possible['global']:
-                return await ctx.send('That command already exists, so you '
-                                      'can\'t make this custom one global.')
-
-        state = self.config[name]['global']
-        text = self.config[name]['text']
-
-        await self.config.put(
-            name,
-            {
-                'text': text,
-                'global': not state
-            }
-        )
-
-        if state:
-            self.bot.remove_command(name)
-        else:
-            self.bot.add_command(self.gen_command(name, text))
-
-        await ctx.auto_react()
-
-    @custom.command(aliases=['r', 'reload'])
-    async def global_reload(self, ctx):
-        """Reload the global commands"""
-
-        self.reload_globals()
-        await ctx.auto_react()
-
-    def reload_globals(self):
+    @custom.command(aliases=['r'])
+    def reload(self):
         for key, value in [(k, v) for k, v in self.config if v['global']]:
             self.bot.remove_command(key)
             self.bot.add_command(self.gen_command(key, value['text']))
