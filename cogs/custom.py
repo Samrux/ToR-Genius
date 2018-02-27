@@ -135,7 +135,7 @@ class CustomCommands:
 #       await ctx.auto_react()
 
     @custom.command(aliases=['r'])
-    def reload(self):
+    async def reload(self):
         for key, value in [(k, v) for k, v in self.config if v['global']]:
             self.bot.remove_command(key)
             self.bot.add_command(self.gen_command(key, value['text']))
