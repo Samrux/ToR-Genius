@@ -160,4 +160,5 @@ class CustomCommands:
 
 
 def setup(bot):
-bot.add_cog(CustomCommands(bot))
+    bot.add_cog(CustomCommands(bot))
+    
