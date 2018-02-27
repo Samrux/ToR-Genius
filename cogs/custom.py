@@ -31,9 +31,9 @@ class CustomCommands:
         self.reload_globals()
 
     @commands.group(aliases=['c', 'tag', 't'], invoke_without_command=True)
-    async def custom(self, ctx, *, name: CommandName):
+    async def custom(self, ctx, *, name: CommandName = None):
         """Basic tagging like thing just for me."""
-        if name is not None:
+        if name is None:
             reply = ''
             for key, value in [(k, v) for k, v in self.config if v['global']]:
                 reply += ('' if reply == '' else ', ') + key
