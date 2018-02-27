@@ -31,7 +31,7 @@ class CustomCommands:
         self.reload_globals()
 
     @commands.group(aliases=['c', 'tag', 't'], invoke_without_command=True)
-    async def custom(self, ctx, *, name: CommandName = None):
+    async def custom(self, ctx, *, name: CommandName):
         """Basic tagging like thing just for me."""
         if name is None:
             reply = ''
