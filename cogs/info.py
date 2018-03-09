@@ -101,7 +101,7 @@ class Info:
     async def created(self, ctx, member: commands.MemberConverter = None):
         """Find out concisely when a user joined Discord."""
         member = member or ctx.author
-        await ctx.send(f'{member.display_name} joined '
+        await ctx.send(f'{member.display_name} created their account '
                        f'{format_time(member.created_at)}')
 
     @commands.command()
@@ -224,7 +224,7 @@ class Info:
             await ctx.show_help('language')
 
     @language.command(name='set')
-    async def lang_set(self, ctx, *, lang):
+    async def lang_set(self, ctx, *, lang: commands.clean_content):
         """Set your language description to something."""
         query = """
 INSERT INTO lang (user_id, lang_desc) VALUES ($1, $2)

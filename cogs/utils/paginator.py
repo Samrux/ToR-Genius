@@ -726,7 +726,8 @@ class HelpPaginator(Pages):
 
         # noinspection PyUnresolvedReferences
         self.embed.set_footer(
-            text=f'Use "{self.prefix}help command" for more info on a command.'
+            text=f'Use `{self.prefix}help <command>` for more info on a '
+                 f'command.'
         )
 
         signature = _command_signature

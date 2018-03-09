@@ -155,13 +155,13 @@ class Mod:
 
         channel_ld = self.bot.lockdown.get(ctx.channel, None)
         if channel_ld:
-            if time.time() - channel_ld > 60:
+            if time.time() - channel_ld > 120:
                 # It's been a minute
                 del self.bot.lockdown[ctx.channel]
                 return True
 
             time_to_wait = humanize.naturaldelta(
-                datetime.datetime.fromtimestamp(channel_ld + 60)
+                datetime.datetime.fromtimestamp(channel_ld + 120)
             )
             await ctx.author.send(
                 f'Sorry, but the bot is on lockdown because some people were '

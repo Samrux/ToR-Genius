@@ -82,7 +82,7 @@ class Meta:
             ctx.send(e)
 
     @commands.group(name='prefix', invoke_without_command=True)
-    async def prefix(self, ctx):
+    async def prefix(self, ctx, *, search: str.lower = ''):
         """Customize the prefixes
 
         Calling without a subcommand lists prefixes
@@ -99,7 +99,7 @@ class Meta:
         p = Pages(
             ctx,
             entries=[f'`{p[0]}`' + (' (regex)' if p[1] else '')
-                     for p in prefixes]
+                     for p in prefixes if search in p[0].lower()]
         )
         await p.paginate()
 
@@ -237,10 +237,13 @@ class Meta:
         """What do you think"""
 
         before = time.monotonic()
-        m = await ctx.send(
-            f'Pong! {round(self.bot.latency*1000, 2):,}ms of Discord WebSocket '
-            f'latency! 🏓'
-        )
+
+        message = f'{"Pong" if ctx.invoked_with == "ping" else "Ping"}! ' \
+                  f'{round(self.bot.latency*1000, 2):,}ms of Discord ' \
+                  f'WebSocket latency! 🏓'
+
+        m = await ctx.send(message)
+
         after = time.monotonic()
 
         await m.edit(content=f'{m.content.strip("! 🏓")}, '
