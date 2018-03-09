@@ -90,7 +90,7 @@ class Search:
             await p.paginate()
 
     # noinspection PyTypeChecker
-    @commands.command()
+    @commands.command(aliases=['quick,'])
     async def quick(self, ctx, *, query: commands.clean_content):
         """Do a quick wolframalpha query, with a short response"""
 
