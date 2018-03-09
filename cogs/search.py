@@ -17,6 +17,12 @@ def code_block(string, lang=''):
     return f'```{lang}\n{string}\n```'
 
 
+# easier for cleaning content
+async def send(ctx, *args, **kwargs):
+    res = await commands.clean_content().convert(ctx, *args, **kwargs)
+    await ctx.send(res)
+
+
 class Search:
     def __init__(self, bot):
         self.bot = bot
@@ -24,11 +30,11 @@ class Search:
     @staticmethod
     async def __error(ctx, err):
         if isinstance(err, commands.CommandOnCooldown):
-            await ctx.send(err)
+            await send(ctx, err)
 
     @commands.command()
     @commands.cooldown(rate=1, per=20, type=commands.BucketType.user)
-    async def wolfram(self, ctx, *, query: str):
+    async def wolfram(self, ctx, *, query: commands.clean_content):
         """Do a full wolframalpha query, with a very verbose response."""
         await ctx.channel.trigger_typing()
 
@@ -49,7 +55,7 @@ class Search:
                         # sub_data.append(sub['img']['@alt'])
                 data.append(sub_data)
         except AttributeError:
-            return await ctx.send('No results found.')
+            return await send(ctx, 'No results found.')
 
         embed_images = [
             discord.Embed().set_image(url=image) for image in images
@@ -65,27 +71,33 @@ class Search:
             ))
             if to_send != '':
                 try:
-                    await ctx.send(to_send)
+                    await send(ctx, to_send)
                 except discord.HTTPException:
                     key = await haste_upload(to_send + '\n' + '\n'.join(images))
-                    await ctx.send(f'https://hastebin.com/{key}')
+                    await send(ctx, f'https://hastebin.com/{key}')
             if embed_images:
                 p = EmbedPages(ctx, embeds=embed_images)
                 await p.paginate()
             return
 
         try:
-            await ctx.send(code_block(t.draw()))
+            await send(ctx, code_block(t.draw()))
         except discord.HTTPException:
             key = await haste_upload(code_block(t.draw()))
-            await ctx.send(f'https://hastebin.com/{key}')
+            await send(ctx, f'https://hastebin.com/{key}')
         if embed_images:
             p = EmbedPages(ctx, embeds=embed_images)
             await p.paginate()
 
-    @commands.command(aliases=['quick,'])
-    async def quick(self, ctx, *, query):
+    # noinspection PyTypeChecker
+    @commands.command()
+    async def quick(self, ctx, *, query: commands.clean_content):
         """Do a quick wolframalpha query, with a short response"""
+
+        # noinspection SpellCheckingInspection
+        if query == 'mafs' or query == 'maths':
+            return await send(ctx, '2+2 = 4-1 = 3')
+
         await ctx.channel.trigger_typing()
         with aiohttp.ClientSession() as s:
             async with s.get(
@@ -93,7 +105,17 @@ class Search:
                     params={'i': query, 'appid': config.wolfram}
             ) as res:
                 text = await res.text()
-                await ctx.send(text)
+                if text == "No short answer available":
+                    to_send = ""
+                    to_send += f"{text}. Hint: try doing `{ctx.prefix}wolfram "
+                    to_send += (query[:35] + '…') if len(query) > 35 else query
+                    to_send += "` in a bot commands channel."
+
+                elif text == "Wolfram|Alpha did not understand your input":
+                    to_send = "Sorry, I don't understand what you said."
+                else:
+                    to_send = text
+                await send(ctx, to_send)
 
     # noinspection SpellCheckingInspection
     @commands.command(aliases=['ddg', 'duck', 'google', 'goog'])
@@ -170,9 +192,13 @@ class Search:
                         )
                     )
 
+                if not final_embeds:
+                    return await ctx.send('No results found.')
+
                 p = EmbedPages(ctx, embeds=final_embeds)
                 await p.paginate()
 
 
 def setup(bot):
     bot.add_cog(Search(bot))
+    
