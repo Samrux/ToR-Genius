@@ -135,10 +135,8 @@ class Fun:
         if 'b' in message:
             return await ctx.send(message.replace('b', ':b:'))
 
-        message = list(message)
-
-        message[random.randint(0, len(message) - 1)] = ':b:'
-        await ctx.send(''.join(message))
+        consonants = set([x for x in message if x not in "aeiou"])
+        await ctx.send(message.replace(random.choice(tuple(consonants)), ':b:'))
 
     # noinspection SpellCheckingInspection
     @commands.command(aliases=['rencode', 'encode'])
@@ -170,6 +168,7 @@ class Fun:
             await ctx.send(key)
         else:
             await ctx.send(f'```{message}```')
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
