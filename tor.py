@@ -3,10 +3,10 @@
 #
 # Licensed under the MIT License. https://opensource.org/licenses/MIT
 
+import sys
 import asyncio
 import importlib
 import logging
-import sys
 import traceback
 from contextlib import contextmanager
 

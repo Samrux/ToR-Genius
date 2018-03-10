@@ -53,6 +53,7 @@ class CustomCommands:
                 f'There already is a custom command called {name}.'
             )
         await self.config.put(name, {'text': content, 'global': True})
+        self.bot.add_command(self.gen_command(key, value['text']))
         await ctx.auto_react()
 
     @custom.command(aliases=['rm', 'del', 'remove'])
