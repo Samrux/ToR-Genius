@@ -135,7 +135,7 @@ class Fun:
         if 'b' in message.lower():
             return await ctx.send(message.replace('b', ':b:').replace('B', ':b:'))
 
-        consonants = set([x for x in message if x not in "AEIOUaeiou "])
+        consonants = set([x for x in message if x.lower() in "bcdfghjklmnpqrstvwxyz"])
         await ctx.send(message.replace(random.choice(tuple(consonants) if consonants else message), ':b:'))
 
     # noinspection SpellCheckingInspection
