@@ -57,7 +57,7 @@ class Context(commands.Context):
             await self.bot.pool.release(self.db)
             self.db = None
 
-    async def auto_react(self, emoji='👌'):
+    async def auto_react(self, emoji='<:check:410612082929565696>'):
         # noinspection PyBroadException
         try:
             await self.message.add_reaction(emoji.strip('<:>'))
