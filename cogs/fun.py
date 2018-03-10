@@ -136,8 +136,7 @@ class Fun:
             return await ctx.send(message.replace('b', ':b:'))
 
         consonants = set([x for x in message if x not in "aeiou"])
-        choice = random.choice(tuple(consonants)) if consonants else random.choice(message)
-        await ctx.send(message.replace(choice, ':b:'))
+        await ctx.send(message.replace(random.choice(tuple(consonants) if consonants else message), ':b:'))
 
     # noinspection SpellCheckingInspection
     @commands.command(aliases=['rencode', 'encode'])
