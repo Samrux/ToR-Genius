@@ -87,7 +87,7 @@ class Fun:
         """Made for fastfinge with <3"""
         user = ctx.author if not user else user
         await ctx.send(
-            f'{user.name}\'s display name is {user.display_name}.'
+            f'{commands.clean_content().convert(user.name)}\'s display name is {commands.clean_content().convert(user.display_name)}.'
         )
 
     @commands.command()
@@ -118,7 +118,7 @@ class Fun:
         member = ctx.author if not member else member
         await ctx.send(
             f'<:tickYes:404815005423501313> **_'
-            f'{member.name}#{member.discriminator} has been warned._**'
+            f'{commands.clean_content().convert(member.name)}#{member.discriminator} has been warned._**'
         )
 
     @commands.command(hidden=True)
@@ -133,10 +133,10 @@ class Fun:
     @commands.command(aliases=['B'])
     async def b(self, ctx, *, message: commands.clean_content):
         """This is a bad idea."""
-        if 'b' in message:
-            return await ctx.send(message.replace('b', ':b:'))
+        if 'b' in message.lower():
+            return await ctx.send(message.replace('b', ':b:').replace('B', ':b:'))
 
-        consonants = set([x for x in message if x not in "aeiou"])
+        consonants = set([x for x in message if x.lower() in "bcdfghjklmnpqrstvwxyz"])
         await ctx.send(message.replace(random.choice(tuple(consonants) if consonants else message), ':b:'))
 
     # noinspection SpellCheckingInspection
