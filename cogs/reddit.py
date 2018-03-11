@@ -89,7 +89,7 @@ class Reddit:
             await ctx.send(error)
 
     @commands.command(name='rwiki')
-    async def reddit_wiki_page(self, ctx, *, search: str = None):
+    async def reddit_wiki_page(self, ctx, *, search: str.lower = None):
         """Search the wiki pages on r/ToR for something."""
         sub = ctx.r.subreddit('transcribersofreddit')
         if not search:
@@ -105,7 +105,7 @@ class Reddit:
         results = []
 
         for page in sub.wiki:
-            if search in str(page.name):
+            if search in str(page.name).lower():
                 results.append(
                     f'[{page.name}](https://www.reddit.com'
                     f'/r/TranscribersOfReddit/wiki/{page.name})'
