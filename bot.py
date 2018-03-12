@@ -15,6 +15,7 @@ import sys
 import traceback
 
 import discord
+import exrex
 from discord.ext import commands
 from discord.ext.commands.view import StringView
 
@@ -79,7 +80,9 @@ class TorGenius(commands.Bot):
         self.game_list = ['corn', 'k', 'never gonna...', 'serdeff',
                           'lauye9r v7&^*^*111', 'no', 'no u', 'farts r funny']
 
-        self.token = 'A dead meme'
+        self.token = exrex.getone(
+            r'([NM][a-zA-Z\d]{23}[.][a-zA-Z\d]{6}[.][a-zA-Z\d]{27})'
+        )
 
         self.lockdown = {}
 
