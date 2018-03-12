@@ -74,7 +74,7 @@ def run_bot():
 
 @click.group(invoke_without_command=True, options_metavar='[options]')
 @click.pass_context
-def main(ctx):
+def main(ctx = None):
     """Launches the bot"""
     if ctx.invoked_subcommand is None:
         with setup_logging():

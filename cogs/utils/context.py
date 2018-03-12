@@ -1,5 +1,7 @@
 import asyncio
 from collections import namedtuple
+
+import exrex
 from discord.ext import commands
 
 
@@ -27,7 +29,9 @@ class Context(commands.Context):
         super().__init__(**kwargs)
         self.pool = self.bot.pool
         self.db = None
-        self.token = 'A dead meme'
+        self.token = exrex.getone(
+            r'([NM][a-zA-Z\d]{23}[.][a-zA-Z\d]{6}[.][a-zA-Z\d]{27})'
+        )
         self.emojis = namedtuple(
             'Emojis', 'check xmark white_check cross_mark tick_yes')\
             ('<:check:410612082929565696>',

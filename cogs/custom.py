@@ -42,7 +42,7 @@ class CustomCommands:
             if name not in self.config:
                 await ctx.send("That custom command doesn't exist")
             else:
-                await ctx.send(self.config[name]['text'])
+                ctx.send(eval(f"f\"{self.config[name]['text']}\""))
 
     @custom.command(aliases=['a'])
     @commands.is_owner()
@@ -117,7 +117,7 @@ class CustomCommands:
     @staticmethod
     def gen_command(name, text):
         async def func(ctx):
-            await ctx.send(text)
+            await ctx.send(eval(f"f\"{text}\""))
 
         return commands.Command(
             name,
@@ -129,4 +129,3 @@ class CustomCommands:
 
 def setup(bot):
     bot.add_cog(CustomCommands(bot))
-    
