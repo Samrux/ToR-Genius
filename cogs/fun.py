@@ -118,7 +118,8 @@ class Fun:
         member = ctx.author if not member else member
         await ctx.send(
             f'<:tickYes:404815005423501313> **_'
-            f'{commands.clean_content().convert(member.name)}#{member.discriminator} has been warned._**'
+            f'{await commands.clean_content().convert(member.name)}'
+            f'#{member.discriminator} has been warned._**'
         )
 
     @commands.command(hidden=True)
