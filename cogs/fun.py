@@ -116,10 +116,10 @@ class Fun:
     async def warn(self, ctx, member: commands.MemberConverter, *, _=None):
         """Meme warn. Doesn't actually do anything."""
         member = ctx.author if not member else member
+        text = await commands.clean_content().convert(member.name)
         await ctx.send(
-            f'<:tickYes:404815005423501313> **_'
-            f'{await commands.clean_content().convert(member.name)}'
-            f'#{member.discriminator} has been warned._**'
+            f'<:tickYes:404815005423501313> **_{text}#{member.discriminator} '
+            f'has been warned._**'
         )
 
     @commands.command(hidden=True)
