@@ -30,8 +30,10 @@ class CustomCommands:
     async def on_ready(self):
         self.reload_globals()
 
+    # noinspection PyUnusedLocal
     @commands.group(aliases=['c', 'tag', 't'], invoke_without_command=True)
-    async def custom(self, ctx, *, name: CommandName):
+    async def custom(self, ctx, name: CommandName, *,
+                     args: commands.clean_content='\u200b'):
         """Basic tagging like thing just for me."""
         if name not in self.config:
             await ctx.send("That custom command doesn't exist")
@@ -142,7 +144,8 @@ class CustomCommands:
 
     @staticmethod
     def gen_command(name, text):
-        async def func(ctx):
+        # noinspection PyUnusedLocal
+        async def func(ctx, *, args: commands.clean_content='\u200b'):
             await ctx.send(eval(f"f\"{text}\""))
 
         return commands.Command(
