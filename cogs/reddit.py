@@ -360,7 +360,7 @@ FROM reddit_config;
                         reason=f'Rankup done by {ctx.author}'
                     )
                     await user.add_roles(
-                        self.roles[index],
+                        self.roles[index + 1],
                         reason=f'Rankup done by {ctx.author}'
                     )
                 except ValueError:
@@ -369,6 +369,8 @@ FROM reddit_config;
 
             await user.add_roles(self.roles[0],
                                  reason=f'Rankup done by {ctx.author}')
+
+        await ctx.auto_react()
 
 
 def setup(bot):
