@@ -358,7 +358,7 @@ FROM reddit_config;
                 try:
                     index = self.roles.index(role)
                     if index == len(self.roles) - 1:
-                        await ctx.send(
+                        return await ctx.send(
                             f'{user_string} is already the top rank.'
                         )
 
