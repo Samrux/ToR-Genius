@@ -355,15 +355,20 @@ FROM reddit_config;
 
                 try:
                     index = self.roles.index(role)
-                    await user.remove_roles(self.roles[index],
-                                            f'Rankup done by {ctx.author}')
-                    await user.add_roles(self.roles[index],
-                                         f'Rankup done by {ctx.author}')
+                    await user.remove_roles(
+                        self.roles[index],
+                        reason=f'Rankup done by {ctx.author}'
+                    )
+                    await user.add_roles(
+                        self.roles[index],
+                        reason=f'Rankup done by {ctx.author}'
+                    )
                 except ValueError:
                     # Should never happen, but just in case
                     return await ctx.send('Unknown error.')
 
-            await user.add_roles(self.roles[0], f'Rankup done by {ctx.author}')
+            await user.add_roles(self.roles[0],
+                                 reason=f'Rankup done by {ctx.author}')
 
 
 def setup(bot):
