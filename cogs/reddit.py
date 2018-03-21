@@ -355,22 +355,34 @@ FROM reddit_config;
 
                 try:
                     index = self.roles.index(role)
+                    if index == len(self.roles) - 1:
+                        await ctx.send(
+                            f'{await clean_user(user)} is already the top rank.'
+                        )
+
                     await user.remove_roles(
                         self.roles[index],
-                        reason=f'Rankup done by {ctx.author}'
+                        reason=f'Rankup done by {await clean_user(ctx.author)}'
                     )
                     await user.add_roles(
                         self.roles[index + 1],
-                        reason=f'Rankup done by {ctx.author}'
+                        reason=f'Rankup done by {await clean_user(ctx.author)}'
                     )
                 except ValueError:
                     # Should never happen, but just in case
                     return await ctx.send('Unknown error.')
 
-            await user.add_roles(self.roles[0],
-                                 reason=f'Rankup done by {ctx.author}')
+            await user.add_roles(
+                self.roles[0],
+                reason=f'Rankup done by {clean_user(ctx.author)}'
+            )
 
         await ctx.auto_react()
+
+
+async def clean_user(ctx, user):
+    res = await commands.clean_content().convert(ctx, str(user))
+    return res
 
 
 def setup(bot):
