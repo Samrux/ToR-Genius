@@ -348,7 +348,9 @@ FROM reddit_config;
     @is_mod()
     @tor_only()
     async def rankup(self, ctx, *users: commands.MemberConverter):
+        author_string = clean_user(ctx, ctx.author)
         for user in users:
+            user_string = await clean_user(ctx, user)
             for role in user.roles:
                 if role not in self.roles:
                     continue
@@ -357,16 +359,16 @@ FROM reddit_config;
                     index = self.roles.index(role)
                     if index == len(self.roles) - 1:
                         await ctx.send(
-                            f'{await clean_user(user)} is already the top rank.'
+                            f'{user_string} is already the top rank.'
                         )
 
                     await user.remove_roles(
                         self.roles[index],
-                        reason=f'Rankup done by {await clean_user(ctx.author)}'
+                        reason=f'Rankup done by {author_string}'
                     )
                     await user.add_roles(
                         self.roles[index + 1],
-                        reason=f'Rankup done by {await clean_user(ctx.author)}'
+                        reason=f'Rankup done by {author_string}'
                     )
                 except ValueError:
                     # Should never happen, but just in case
@@ -374,7 +376,7 @@ FROM reddit_config;
 
             await user.add_roles(
                 self.roles[0],
-                reason=f'Rankup done by {clean_user(ctx.author)}'
+                reason=f'Rankup done by {author_string}'
             )
 
         await ctx.auto_react()
