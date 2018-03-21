@@ -128,7 +128,7 @@ class Reddit:
 
         if results is not []:
             p = Pages(ctx, entries=results)
-            p.embed.color = ctx.author.color
+            p.embed.color = getattr(ctx.author, 'color', discord.Color.blue())
             await p.paginate()
         else:
             await ctx.send("Couldn't find any results for that. Sorry! ):")
