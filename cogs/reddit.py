@@ -109,7 +109,7 @@ class Reddit:
         sub = ctx.r.subreddit('transcribersofreddit')
         if not search:
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=getattr(ctx.author, 'color', discord.Color.blue()),
                 description='[ToR Wiki](https://www.reddit.com/'
                             'r/TranscribersOfReddit/wiki/index)'
             )
