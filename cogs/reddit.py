@@ -374,7 +374,7 @@ FROM reddit_config;
                     # Should never happen, but just in case
                     return await ctx.send('Unknown error.')
 
-            if not any([r in self.roles for r in author.roles]):
+            if not any([r in self.roles for r in ctx.author.roles]):
                 await user.add_roles(
                     self.roles[0],
                     reason=f'Rankup done by {author_string}'
