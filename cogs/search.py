@@ -74,7 +74,7 @@ class Search:
                     await send(ctx, to_send)
                 except discord.HTTPException:
                     key = await haste_upload(to_send + '\n' + '\n'.join(images))
-                    await send(ctx, f'https://hastebin.com/{key}')
+                    await send(ctx, key)
             if embed_images:
                 p = EmbedPages(ctx, embeds=embed_images)
                 await p.paginate()
@@ -84,7 +84,7 @@ class Search:
             await send(ctx, code_block(t.draw()))
         except discord.HTTPException:
             key = await haste_upload(code_block(t.draw()))
-            await send(ctx, f'https://hastebin.com/{key}')
+            await send(ctx, key)
         if embed_images:
             p = EmbedPages(ctx, embeds=embed_images)
             await p.paginate()
