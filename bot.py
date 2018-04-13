@@ -247,7 +247,7 @@ class TorGenius(commands.Bot):
         if ctx.command is None:
             if "just monika" in message.content.lower():
                 await ctx.send('Just Monika')
-            elif message.content == 'neat' and message.user.user_id == 228656614851346432:
+            elif message.content == 'neat':
                 await ctx.send('neat')
             return
 
