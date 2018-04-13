@@ -178,7 +178,7 @@ class TorGenius(commands.Bot):
         game = random.choice(self.game_list)
 
         await self.change_presence(
-            game=(discord.Game(name=game))
+            activity=(discord.Game(name=game))
         )
 
     async def get_context(self, message, *, cls=Context):

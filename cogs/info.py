@@ -121,9 +121,9 @@ class Info:
         """Search or list games, sorted by most common"""
 
         count = Counter([
-            u.game.name
+            u.activity.name
             for u in ctx.guild.members
-            if u.game and query in u.game.name.lower()
+            if u.activity and query in u.activity.name.lower()
         ])
 
         p = Pages(ctx, entries=[

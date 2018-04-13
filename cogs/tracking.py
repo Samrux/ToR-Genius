@@ -74,6 +74,22 @@ class Tracking:
         e.timestamp = datetime.datetime.utcnow()
         await self.make_report(embed=e)
 
+        # Start sentry logging
+        ctx.sentry.captureException(
+            exc_info=(type(error), error, error.__traceback__),
+            data={
+                'user': {
+                    'id': ctx.author.id,
+                    'name': str(ctx.author)
+                },
+                'extra': {
+                    'command': ctx.command.qualified_name,
+                    'location': fmt,
+                    'raw_location': ctx.channel.id
+                }
+            }
+        )
+
 
 old_on_error = commands.Bot.on_error
 

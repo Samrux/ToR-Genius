@@ -2,7 +2,10 @@ import asyncio
 from collections import namedtuple
 
 import exrex
+import raven
 from discord.ext import commands
+
+import config
 
 
 # noinspection PyProtectedMember
@@ -32,8 +35,9 @@ class Context(commands.Context):
         self.token = exrex.getone(
             r'([NM][a-zA-Z\d]{23}[.][a-zA-Z\d]{6}[.][a-zA-Z\d]{27})'
         )
+        self.sentry = raven.Client(config.sentry)
         self.emojis = namedtuple(
-            'Emojis', 'check xmark white_check cross_mark tick_yes')\
+            'Emojis', 'check xmark white_check cross_mark tick_yes') \
             ('<:check:410612082929565696>',
              '<:cross:410612082988285952>',
              '\N{WHITE HEAVY CHECK MARK}',

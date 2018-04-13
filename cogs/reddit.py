@@ -83,6 +83,21 @@ class Reddit:
     def __init__(self, bot):
         self.bot = bot
 
+        guild = bot.get_guild(318873523579781132)
+
+        if guild:
+            roles = [
+                379654302400249857,
+                353907875220815873,
+                353907641279578115,
+                353907075962634240,
+                353906446053933058,
+                353906158261764108,
+                416753066025680897
+            ]
+
+            self.roles = [discord.utils.get(guild.roles, id=r) for r in roles]
+
     @staticmethod
     async def __error(ctx, error):
         if isinstance(error, BadArgument):
@@ -94,7 +109,7 @@ class Reddit:
         sub = ctx.r.subreddit('transcribersofreddit')
         if not search:
             embed = discord.Embed(
-                color=ctx.author.color,
+                color=getattr(ctx.author, 'color', discord.Color.blue()),
                 description='[ToR Wiki](https://www.reddit.com/'
                             'r/TranscribersOfReddit/wiki/index)'
             )
@@ -113,11 +128,12 @@ class Reddit:
 
         if results is not []:
             p = Pages(ctx, entries=results)
-            p.embed.color = ctx.author.color
+            p.embed.color = getattr(ctx.author, 'color', discord.Color.blue())
             await p.paginate()
         else:
             await ctx.send("Couldn't find any results for that. Sorry! ):")
 
+    # noinspection PyUnresolvedReferences
     @commands.group(invoke_without_command=True)
     @tor_only()
     async def link(self, ctx, *, username: commands.clean_content):
@@ -309,7 +325,7 @@ FROM reddit_config;
 
         await p.paginate()
 
-    @commands.group(invoke_without_command=True)
+    @commands.command()
     async def gammas(self, ctx, *, user: RedditAccountConverter = None):
         """Get the number of gammas from a user"""
         user = user or await RedditMember.create(ctx, ctx.author)
@@ -326,6 +342,50 @@ FROM reddit_config;
                     f'transcriptions! '
                 ))
                 return
+
+    # noinspection PyUnresolvedReferences
+    @commands.command()
+    @is_mod()
+    @tor_only()
+    async def rankup(self, ctx, *users: commands.MemberConverter):
+        author_string = clean_user(ctx, ctx.author)
+        for user in users:
+            user_string = await clean_user(ctx, user)
+            for role in user.roles:
+                if role not in self.roles:
+                    continue
+
+                try:
+                    index = self.roles.index(role)
+                    if index == len(self.roles) - 1:
+                        return await ctx.send(
+                            f'{user_string} is already the top rank.'
+                        )
+
+                    await user.remove_roles(
+                        self.roles[index],
+                        reason=f'Rankup done by {author_string}'
+                    )
+                    await user.add_roles(
+                        self.roles[index + 1],
+                        reason=f'Rankup done by {author_string}'
+                    )
+                except ValueError:
+                    # Should never happen, but just in case
+                    return await ctx.send('Unknown error.')
+
+            if not any([r in self.roles for r in ctx.author.roles]):
+                await user.add_roles(
+                    self.roles[0],
+                    reason=f'Rankup done by {author_string}'
+                )
+
+        await ctx.auto_react()
+
+
+async def clean_user(ctx, user):
+    res = await commands.clean_content().convert(ctx, str(user))
+    return res
 
 
 def setup(bot):
