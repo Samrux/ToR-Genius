@@ -30,6 +30,10 @@ def imgbio(img):
     return bio
 
 
+def getimgname(url):
+    return re.findall(r'.*\.(?:jpg|png|jpeg)', url)[0]
+
+
 def place_centered_text(text, pos, draw, font, wrap, color):
     x, y = pos
     lines = textwrap.wrap(text, width=wrap)
@@ -104,7 +108,7 @@ class Memes:
         user = await RichArgument().convert(ctx, user or '280001404020588544')
 
         if isinstance(user, str):
-            return await ctx.send('Invalid username')
+            return await ctx.send('Invalid username or image URL')
 
         # :no_entry: emoji
         emoji = 'https://emojipedia-us.s3.amazonaws.com/thumbs/240/twitter/' \
@@ -225,11 +229,11 @@ class Memes:
     async def captcha(self, ctx, img, *, message=None):
         """Generate a select all <blank>"""
 
-        name = message or img
+        name = message or getimgname(img) if re.fullmatch(reimageurl, img) else img
         img = await RichArgument().convert(ctx, img)
 
         if isinstance(img, str):
-            return ctx.send('Invalid username or image URL')
+            return await ctx.send('Invalid username or image URL')
 
         meme = Image.open('memes/captcha.png')
 
