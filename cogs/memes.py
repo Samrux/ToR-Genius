@@ -31,9 +31,10 @@ def imgbio(img):
 
 
 def getimgname(url):
-    match = re.findall(r'.*\.(?:jpg|png|jpeg)', url)[0]
-    print(match)
-    return match
+    try:
+        return re.findall(r'/.*\.(?:jpg|png|jpeg)', url)[0]
+    except IndexError: # ¯\_(ツ)_/¯
+        return 'Image'
 
 
 def place_centered_text(text, pos, draw, font, wrap, color):
@@ -106,7 +107,7 @@ class Memes:
     async def blame(self, ctx, *, user=None):
         """Blame a person. Defaults to this bot's original author perryprog"""
         # Hardcoded because I want to be blamed even in forks ;)
-        name = user or 'perry'
+        name = (getimgname(user) if re.fullmatch(reimageurl, user) else user) if user else 'perry'
         user = await RichArgument().convert(ctx, user or '280001404020588544')
 
         if isinstance(user, str):
