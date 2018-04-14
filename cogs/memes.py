@@ -9,12 +9,16 @@ from PIL import Image, ImageFont, ImageDraw
 from discord.ext import commands
 
 
-Black = (0, 0, 0)
-White = (255, 255, 255)
+# Meme commands improved by Samrux :)
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 # from https://stackoverflow.com/questions/169625/regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
-imageurl = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
-reimageurl = re.compile(imageurl, re.IGNORECASE)
+image_url = re.compile(
+    r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?',
+    re.IGNORECASE
+)
 
 
 async def download(url):
@@ -23,14 +27,14 @@ async def download(url):
             return io.BytesIO(await r.read())
 
 
-def imgbio(img):
+def img_bio(img):
     bio = io.BytesIO()
     img.save(bio, 'PNG')
     bio.seek(0)
     return bio
 
 
-def getimgname(url):
+def get_img_name(url):
     match = re.findall(r'[^/]+(?:png|jpg|jpeg)/?$', url)  # Finds URL end
     match = re.sub(r'\.[^.]+/?$', '', match[0]) if match else 'Image'  # Removes file extension
     return match
@@ -83,7 +87,7 @@ class RichArgument(commands.Converter):
             pass
 
         # Image
-        if re.fullmatch(reimageurl, argument):
+        if re.fullmatch(image_url, argument):
             img = await download(argument.strip('<>'))
             return Image.open(img).convert('RGBA')
 
@@ -101,12 +105,11 @@ class Memes:
         if isinstance(err, commands.BadArgument):
             await ctx.send(err)
 
-    # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
     async def blame(self, ctx, *, user=None):
         """Blame a person. Defaults to this bot's original author perryprog"""
         # Hardcoded because I want to be blamed even in forks ;)
-        name = (getimgname(user) if re.fullmatch(reimageurl, user) else user) if user else 'perry'
+        name = (get_img_name(user) if re.fullmatch(image_url, user) else user) if user else 'perry'
         user = await RichArgument().convert(ctx, user or '280001404020588544')
 
         if isinstance(user, str):
@@ -160,7 +163,7 @@ class Memes:
             message, font=font, fill=(255,)*4
         )
 
-        await ctx.send(file=discord.File(imgbio(large_image), filename='blame.png'))
+        await ctx.send(file=discord.File(img_bio(large_image), filename='blame.png'))
 
     @commands.command(aliases=['thefloor', 'the_floor'])
     async def floor(self, ctx, person: RichArgument, *, thefloor):
@@ -171,18 +174,18 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         # Floor is
-        place_centered_text("The floor is " + thefloor, (340, 70), draw, font, 70, Black)
+        place_centered_text("The floor is " + thefloor, (340, 70), draw, font, 70, BLACK)
 
         # Person's head
         pos = ((150, 145), (480, 160))
         size = ((20, 20), (40, 40))
         for i in range(2):
             if isinstance(person, str):
-                place_centered_text(person, pos[i], draw, font, 20, Black)
+                place_centered_text(person, pos[i], draw, font, 20, BLACK)
             else:
                 place_centered_image(person, pos[i], meme, size[i])
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='floor.png'))
+        await ctx.send(file=discord.File(img_bio(meme), filename='floor.png'))
 
     @commands.command(aliases=['highway'])
     async def car(self, ctx, driver: RichArgument,
@@ -194,11 +197,11 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         pos = ((365, 465), (210, 150), (420, 150))
-        place_centered_content(driver, pos[0], draw, font, 25, White, meme, (50, 50))
-        place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (100, 100))
-        place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (120, 120))
+        place_centered_content(driver, pos[0], draw, font, 25, WHITE, meme, (50, 50))
+        place_centered_content(first_option, pos[1], draw, font, 9, WHITE, meme, (100, 100))
+        place_centered_content(second_option, pos[2], draw, font, 12, WHITE, meme, (120, 120))
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='car.png'))
+        await ctx.send(file=discord.File(img_bio(meme), filename='car.png'))
 
     @commands.command()
     async def wheeze(self, ctx, *, thing: RichArgument):
@@ -208,9 +211,9 @@ class Memes:
         draw = ImageDraw.Draw(meme)
         font = ImageFont.truetype('Arial.ttf', 20)
 
-        place_centered_content(thing, (90, 490), draw, font, 18, Black, meme, (100, 100))
+        place_centered_content(thing, (90, 490), draw, font, 18, BLACK, meme, (100, 100))
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='wheeze.png'))
+        await ctx.send(file=discord.File(img_bio(meme), filename='wheeze.png'))
 
     # noinspection PyUnresolvedReferences
     @commands.command(aliases=['garbage'])
@@ -223,15 +226,15 @@ class Memes:
 
         pos = ((485, 90 if isinstance(person, str) else 165), (780, 300))
         place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (200, 200), 20)
-        place_centered_content(trash, pos[1], draw, font, 15, Black, meme, (250, 250), -10)
+        place_centered_content(trash, pos[1], draw, font, 15, BLACK, meme, (250, 250), -10)
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='trash.png'))
+        await ctx.send(file=discord.File(img_bio(meme), filename='trash.png'))
 
     @commands.command()
     async def captcha(self, ctx, img, *, message=None):
         """Generate a select all <blank>"""
 
-        message = message or (getimgname(img) if re.fullmatch(reimageurl, img) else img)
+        message = message or (get_img_name(img) if re.fullmatch(image_url, img) else img)
         img = await RichArgument().convert(ctx, img)
 
         if isinstance(img, str):
@@ -248,9 +251,9 @@ class Memes:
         # == Text ==
         font = ImageFont.truetype('Arial.ttf', 30)
         draw = ImageDraw.Draw(meme)
-        draw.text((51, 90), message, font=font, fill=White)
+        draw.text((51, 90), message, font=font, fill=WHITE)
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='captcha.png'))
+        await ctx.send(file=discord.File(img_bio(meme), filename='captcha.png'))
 
 
 def setup(bot):
