@@ -246,7 +246,7 @@ class TorGenius(commands.Bot):
         if ctx.command is None:
             if "just monika" in message.content.lower():
                 await ctx.send('Just Monika')
-            elif message.content == 'neat':
+            elif message.content == 'neat' and await self.is_owner(ctx.author) or message.content == 'sudo neat':
                 await ctx.send('neat')
             return
 
