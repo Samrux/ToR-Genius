@@ -199,38 +199,6 @@ class Info:
             )
         )
 
-    @language.command(name='set')
-    async def lang_set(self, ctx, *, lang: commands.clean_content):
-        """Set your language description to something."""
-        query = """
-INSERT INTO lang (user_id, lang_desc) VALUES ($1, $2)
-ON CONFLICT (user_id)
-  DO UPDATE SET lang_desc = EXCLUDED.lang_desc;
-        """
-
-        await ctx.db.execute(query, ctx.author.id, lang)
-        await ctx.auto_react()
-
-    @language.command(name='get')
-    async def lang_get(self, ctx, *, user: commands.MemberConverter = None):
-        """Get your own or someone else's language description"""
-        query = """
-SELECT lang_desc
-FROM lang 
-WHERE user_id = $1;"""
-
-        user = user or ctx.author
-
-        res = await ctx.db.fetchval(query, user.id)
-
-        if not res:
-            return await ctx.send("I couldn't find a language description of "
-                                  "that user. Sorry.")
-
-        await ctx.send(
-            f'{user.display_name}\'s language description is "{res}".'
-        )
-
     @commands.command()
     async def uptime(self, ctx, exact: bool = False):
         """Get the bots uptime, with an optional exact time."""
