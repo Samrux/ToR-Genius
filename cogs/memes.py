@@ -40,7 +40,7 @@ def place_centered_image(img, pos, base, size=None, rotation=None):
     w, h = size
 
     if size is not None:
-        img = img.resize(img)
+        img = img.resize(size)
     if rotation is not None:
         img = img.rotate(rotation, expand=True)
     base.paste(img, (x - w//2, y - h//2), img)
