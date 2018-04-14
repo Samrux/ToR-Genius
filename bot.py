@@ -34,7 +34,7 @@ initial_extensions = [
     'cogs.meta',
     'cogs.mod',
     'cogs.info',
-    'cogs.other',
+    'cogs.memes',
     'cogs.search',
     'cogs.humanize',
     'cogs.jokes',
