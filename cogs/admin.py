@@ -73,7 +73,7 @@ async def gist_upload(files, public=False, description=''):
 
 
 class Admin:
-    """Admin only commands for the PWNZ"""
+    """Owner hackerman commands"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -87,16 +87,10 @@ class Admin:
 
     @staticmethod
     def cleanup_code(content):
-        """
-        Automatically removes code blocks from the code. This is for when
-        using the eval stuff, you type in a code block, and it removes it for
-        you. Magic!
-        """
-        return  content.replace('```py\n', '').strip('` \n')
+        return content.replace('```py\n', '').strip('` \n')
 
     async def on_message_edit(self, before, after):
         # Thanks 『 ᴺᵉᵏᵒ 』#0001 for the idea
-
         result = self.messages.get(before.id)
         if not result:
             return
@@ -107,7 +101,6 @@ class Admin:
 
     async def send_response(self, ctx, content, inp, extra=None,
                             file_type='py', raw=False):
-
         if extra:
             self._last_result = extra
 
@@ -128,7 +121,6 @@ class Admin:
                          f'out.{file_type}': {'content': content}})
                     m = await ctx.send(key)
                     self.messages[ctx.message.id] = (ctx.message, m)
-
         else:
             try:
                 m = await ctx.send(
@@ -153,8 +145,9 @@ class Admin:
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}:' \
                f' {e}```'
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def sh(self, ctx, *, cmd):
+        """Run a batch command on the bot's host"""
         # https://github.com/khazhyk/dango.py/blob/master/plugins/debug.py#L144-L153
         await ctx.channel.trigger_typing()
         sout, serr = await run_subprocess(cmd)
@@ -191,7 +184,7 @@ class Admin:
         else:
             await ctx.auto_react()
 
-    @commands.command(name='reload', hidden=True, aliases=['r'])
+    @commands.command(name='reload', aliases=['r'])
     async def _reload(self, ctx, *, module):
         """Reloads a module."""
         if not module.startswith('cogs.'):
@@ -214,9 +207,9 @@ class Admin:
         return f'```py\n{err.text}{"↑":>{err.offset}}\n{type(err).__name__}:' \
                f' {err}```'
 
-    @commands.command(pass_context=True, hidden=True, name='eval')
+    @commands.command(pass_context=True, name='eval')
     async def _eval(self, ctx, *, body: str):
-        """Evaluates some code"""
+        """Runs Python code"""
 
         env = {
             'bot': self.bot,
@@ -262,9 +255,9 @@ class Admin:
 
             await self.send_response(ctx, value, to_compile, extra=ret)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True)
     async def calc(self, ctx, *, body: str):
-        """Evaluates some code with sympy imported"""
+        """Evaluates code and returns the result, with sympy"""
 
         env = {
             'bot': self.bot,
@@ -413,13 +406,15 @@ class Admin:
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
 
-    @commands.command(hidden=True)
+    @commands.command()
     async def explode(self, ctx):
+        """This kills the bot."""
         await ctx.auto_react()
         await ctx.bot.logout()
 
-    @commands.command(hidden=True)
-    async def game(self, ctx, *, game: str = None):
+    @commands.command(aliases=['game'])
+    async def setgame(self, ctx, *, game: str = None):
+        """Set the current shown game"""
         game = game if game else random.choice(self.bot.game_list)
 
         if game != 'NONE':
@@ -435,11 +430,13 @@ class Admin:
 
     @commands.command()
     async def setname(self, ctx, *, nick: str):
+        """Set the bot's nickname on this server"""
         await ctx.guild.me.edit(nick=nick)
         await ctx.auto_react()
 
     @commands.command()
     async def setavatar(self, ctx, *, file: str):
+        """Set the bot's avatar"""
         with open(file, 'rb') as f:
             await self.bot.user.edit(avatar=f.read())
 

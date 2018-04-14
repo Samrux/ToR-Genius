@@ -199,30 +199,6 @@ class Info:
             )
         )
 
-    @commands.command()
-    async def hoisters(self, ctx, role: commands.RoleConverter = None,
-                       limit: int = 0):
-        """Get a list of possible hoisters, with an optional role, and an
-        optional limit."""
-
-        if role:
-            result = [
-                m.display_name for m in ctx.guild.members if role in m.roles
-            ]
-        else:
-            result = [m.display_name for m in ctx.guild.members]
-
-        result = result[:limit] if limit else result
-
-        p = Pages(ctx, entries=sorted(result, key=locale.strxfrm))
-        await p.paginate()
-
-    @commands.group(aliases=['lang'])
-    async def language(self, ctx):
-        """Set/get other peoples description of the languages they know."""
-        if ctx.invoked_subcommand is None:
-            await ctx.show_help('language')
-
     @language.command(name='set')
     async def lang_set(self, ctx, *, lang: commands.clean_content):
         """Set your language description to something."""

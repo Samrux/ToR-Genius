@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 class Fun:
-    """How much fun can a fun fun have if a fun fun could have fun?"""
+    """Random fun commands"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -171,7 +171,7 @@ class Fun:
         else:
             await ctx.send(f'```{message}```')
 
-    @commands.command(aliases=['sync'])
+    @commands.command(aliases=['sync'], hidden=True)
     async def loading(self, ctx, count: int = 7):
         if count < 1 or count > 50:
             return await ctx.send('Please make the number '
