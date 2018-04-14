@@ -97,13 +97,13 @@ class Memes:
 
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
-    async def blame(self, ctx, *, arg=None):
+    async def blame(self, ctx, *, user=None):
         """Blame a person. Defaults to this bot's original author perryprog"""
         # Hardcoded because I want to be blamed even in forks ;)
-        name = arg or 'perry'
-        arg = await RichArgument().convert(ctx, arg or '280001404020588544')
+        name = user or 'perry'
+        user = await RichArgument().convert(ctx, user or '280001404020588544')
 
-        if isinstance(arg, str):
+        if isinstance(user, str):
             return await ctx.send('Invalid username')
 
         # :no_entry: emoji
@@ -114,17 +114,17 @@ class Memes:
         emoji = emoji.convert('RGBA')
 
         # make the image 3 times larger than the avatar
-        large_image = Image.new('RGBA', [3 * x for x in arg.size], (0,) * 4)
+        large_image = Image.new('RGBA', [3 * x for x in user.size], (0,) * 4)
         lW, lH = large_image.size
-        W, H = arg.size
+        W, H = user.size
         # the center box for the avatar
         box = (W, H, W * 2, H * 2)
 
         # make the emoji 20% bigger than the avatar
-        emoji = emoji.resize([floor(x * 1.2) for x in arg.size])
+        emoji = emoji.resize([floor(x * 1.2) for x in user.size])
         eW, eH = emoji.size
 
-        large_image.paste(arg.copy(), box)
+        large_image.paste(user.copy(), box)
         large_image.paste(
             emoji,
 
@@ -138,22 +138,20 @@ class Memes:
         )
 
         # make the font size relative to the avatar size
-        fnt = ImageFont.truetype('Arial.ttf', floor(arg.size[0] / 4))
-        d = ImageDraw.Draw(large_image)
+        font = ImageFont.truetype('Arial.ttf', floor(user.size[0] / 4))
+        draw = ImageDraw.Draw(large_image)
 
         message = f'#blame{name}'
-        tW, tH = d.textsize(message, fnt)
+        tW, tH = draw.textsize(message, font)
 
-        d.text(
+        draw.text(
             (  # center the text
                 floor((lW - tW) / 2),
                 # make the text somewhat centered (a bit offset so it
                 # looks good) in the first "row"
                 floor(H / 2) - floor(W / 4)
             ),
-            message,
-            font=fnt,
-            fill=(255,) * 4
+            message, font=font, fill=(255,)*4
         )
 
         await ctx.send(file=discord.File(imgbio(meme), filename='blame.png'))
@@ -204,7 +202,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
         font = ImageFont.truetype('Arial.ttf', 20)
 
-        place_centered_content(thing, (90, 490), draw, font, 20, Black, meme, (100, 100))
+        place_centered_content(thing, (90, 490), draw, font, 18, Black, meme, (100, 100))
 
         await ctx.send(file=discord.File(imgbio(meme), filename='wheeze.png'))
 
@@ -224,27 +222,27 @@ class Memes:
         await ctx.send(file=discord.File(imgbio(meme), filename='trash.png'))
 
     @commands.command()
-    async def captcha(self, ctx, img: RichArgument, *, message=None):
+    async def captcha(self, ctx, img, *, message=None):
         """Generate a select all <blank>"""
 
-        img, name = img
-        name = re.sub(r'\W', '', name).lower()
-        name = message or name
+        name = message or img
+        img = await RichArgument().convert(ctx, img)
+
+        if isinstance(img, str):
+            return ctx.send('Invalid username or image URL')
 
         meme = Image.open('memes/captcha.png')
 
         # == Images ==
         img = img.resize((129, 129))
-
         for x_mul in range(3):
             for y_mul in range(3):
                 meme.paste(img, (27 + 129 * x_mul, 173 + 129 * y_mul))
 
         # == Text ==
-        fnt = ImageFont.truetype('Arial.ttf', 30)
-        d = ImageDraw.Draw(meme)
-
-        d.text((51, 90), name, font=fnt, fill=(255,) * 3)
+        font = ImageFont.truetype('Arial.ttf', 30)
+        draw = ImageDraw.Draw(meme)
+        draw.text((51, 90), name, font=font, fill=White)
 
         await ctx.send(file=discord.File(imgbio(meme), filename='captcha.png'))
 
