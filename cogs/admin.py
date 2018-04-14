@@ -92,12 +92,7 @@ class Admin:
         using the eval stuff, you type in a code block, and it removes it for
         you. Magic!
         """
-        # remove ```py\n```
-        if content.startswith('```') and content.endswith('```'):
-            return '\n'.join(content.split('\n')[1:-1])
-
-        # remove `foo`
-        return content.strip('` \n')
+        return  content.replace('```py\n', '').strip('` \n')
 
     async def on_message_edit(self, before, after):
         # Thanks 『 ᴺᵉᵏᵒ 』#0001 for the idea
@@ -429,7 +424,7 @@ class Admin:
 
         if game != 'NONE':
             await self.bot.change_presence(
-                game=discord.Game(name=game)
+                activity=discord.Game(name=game)
             )
         else:
             await self.bot.change_presence(
