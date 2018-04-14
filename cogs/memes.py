@@ -264,38 +264,45 @@ class Memes:
         bio.seek(0)
         await ctx.send(file=discord.File(bio, filename='floor.png'))
 
-    @commands.command(aliases=['car'])
-    async def highway(self, ctx, img: AvatarOrOnlineImageOrText,
+    @commands.command(aliases=['highway'])
+    async def car(self, ctx, driver: AvatarOrOnlineImage,
                       first_option, second_option):
-        """Generate a "Left Exit 12 Off Ramp" meme."""
-
-        img, _ = img
-
-        if len(first_option) > 54 or len(second_option) > 54:
-            return await ctx.send("Your options can't be that long. (Max 54)")
+        """Generate a highway exit meme. Use quotes for sentences"""
 
         meme_format = Image.open('memes/highway.jpg')
 
-        # == Text one ==
         fnt = ImageFont.truetype('Arial.ttf', 22)
         d = ImageDraw.Draw(meme_format)
 
-        margin = 165
-        offset = 80
-        for line in textwrap.wrap(first_option, width=9):
-            d.text((margin, offset), line, font=fnt, fill=(255,) * 3)
-            offset += fnt.getsize(line)[1]
+        # == Text one ==
+        lines = textwrap.wrap(first_option, width=9)
+        y = 150 - sum(fnt.getsize(l)[1] for l in lines)//2
+        for line in lines:
+            width, height = fnt.getsize(line)
+            x = 210 - width//2
+            d.text((x, y), line, font=fnt, fill=(255,) * 3)
+            y += height
 
         # == Text two ==
+        lines = textwrap.wrap(second_option, width=12)
+        y = 150 - sum(fnt.getsize(l)[1] for l in lines)//2
+        for line in lines:
+            width, height = fnt.getsize(line)
+            x = 420 - width//2
+            d.text((x, y), line, font=fnt, fill=(255,) * 3)
+            y += height
 
-        margin = 380
-        offset = 80
-        for line in textwrap.wrap(second_option, width=9):
-            d.text((margin, offset), line, font=fnt, fill=(255,) * 3)
-            offset += fnt.getsize(line)[1]
-
-        # == Image ==
-        meme_format.paste(img.resize((50, 50)), (340, 430))
+        # == Driver  ==
+        if isinstance(driver, str):
+            lines = textwrap.wrap(driver, width=25)
+            y = 465 - sum(fnt.getsize(l)[1] for l in lines)//2
+            for line in lines:
+                width, height = fnt.getsize(line)
+                x = 360 - width//2
+                d.text((x, y), line, font=fnt, fill=(255,) * 3) 
+                y += height
+        else:
+            meme_format.paste(driver.resize((50, 50)), (340, 440))
 
         # == Sending ==
         bio = io.BytesIO()
@@ -306,11 +313,6 @@ class Memes:
     @commands.command()
     async def wheeze(self, ctx, *, message: str):
         """Generate a wheeze meme."""
-
-        if len(message) > 10:
-            return await ctx.send(
-                "Can't do more than 10 characters because reasons"
-            )
 
         meme_format = Image.open('memes/wheeze.png')
 
@@ -332,46 +334,38 @@ class Memes:
                     *, second: AvatarOrOnlineImage):
         """Generate a taking out the trash meme."""
 
-        if isinstance(first, str):
-            if len(first) > 6:
-                return await ctx.send(
-                    "Can't do more than 6 characters because reasons"
-                )
-
-        if isinstance(second, str):
-            if len(second) > 25:
-                return await ctx.send(
-                    "Can't do more than 6 characters because reasons"
-                )
-
         meme_format = Image.open('memes/garbage.jpg')
         meme_format = meme_format.convert('RGBA')
 
-        # == Text/Avatars 1==
+        # == Text/Avatar 1 ==
         if isinstance(first, str):
             fnt = ImageFont.truetype('Arial.ttf', 50)
             d = ImageDraw.Draw(meme_format)
 
-            margin = 440
-            offset = 35
-            for line in textwrap.wrap(first, width=4):
-                d.text((margin, offset), line, font=fnt, fill=(255,) * 3)
-                offset += fnt.getsize(line)[1]
+            lines = textwrap.wrap(first, width=10)
+            y = 65 - sum(fnt.getsize(l)[1] for l in lines)//2
+            for line in lines:
+                width, height = fnt.getsize(line)
+                x = 485 - width//2
+                d.text((x, y), line, font=fnt, fill=(255,) * 3)
+                y += height
         else:
             first = first.resize((180, 180))
             first = first.rotate(20, expand=True)
             meme_format.paste(first, (390, 15), first)
 
-        # == Text/Avatars 2 ==
+        # == Text/Avatar 2 ==
         if isinstance(second, str):
             fnt = ImageFont.truetype('Arial.ttf', 50)
             d = ImageDraw.Draw(meme_format)
 
-            margin = 720
-            offset = 170
-            for line in textwrap.wrap(second, width=5):
-                d.text((margin, offset), line, font=fnt, fill=(0,) * 3)
-                offset += fnt.getsize(line)[1]
+            lines = textwrap.wrap(second, width=10)
+            y = 290 - sum(fnt.getsize(l)[1] for l in lines)//2
+            for line in lines:
+                width, height = fnt.getsize(line)
+                x = 780 - width//2
+                d.text((x, y), line, font=fnt, fill=(0,) * 3)
+                y += height
         else:
             second = second.resize((250, 250))
             second = second.rotate(-10, expand=True)
@@ -412,35 +406,6 @@ class Memes:
         meme_format.save(bio, 'PNG')
         bio.seek(0)
         await ctx.send(file=discord.File(bio, filename='floor.png'))
-
-    @commands.command('spam')
-    async def who_did_this(self, ctx, search=3):
-        """Find out who spammed a help command.
-
-        Specifically for the dbots server.
-
-        Search is how far to go before hitting a bot."""
-        final_results = []
-
-        async for m in ctx.channel.history(limit=search):
-            if m.author.bot:
-                # We probably found the end of the train
-                async for bot_m in ctx.channel.history(before=m):
-                    if not bot_m.author.bot:
-                        # Start of the train
-                        final_results.append((bot_m.author, bot_m.content))
-                        async for others_m in ctx.channel.history(
-                                limit=5, before=bot_m
-                        ):
-                            final_results.append(
-                                (others_m.author, others_m.content)
-                            )
-                            return await ctx.send(
-                                '\n'.join(
-                                    f'**{r[0].display_name}:** {r[1]}'
-                                    for r in final_results
-                                )
-                            )
 
 
 def setup(bot):
