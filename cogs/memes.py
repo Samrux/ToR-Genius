@@ -92,17 +92,14 @@ class Memes:
 
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
-    async def blame(self, ctx, *, arg: RichArgument = None):
-        """Blame everyone! Defaults to perryprog.
+    async def blame(self, ctx, *, arg=None):
+        """Blame everyone! Defaults to this bot's author perryprog"""
+        # Hardcoded because I want to be blamed even in forks ;)
+        arg = await RichArgument().convert(ctx, arg or '280001404020588544')
+        name = arg or 'perry'
 
-        Will also accept image urls ending in jpg, png, and jpeg."""
-        # hardcoded because I want to be blamed even in forks ;)
-        arg, name = arg or await RichArgument().convert(ctx, '280001404020588544')
-        # special cases for usernames
-        special_cases = {
-            'perryprog': 'perry',
-            'itsthejoker': 'joker'
-        }
+        if isinstance(arg, str):
+            return await ctx.send('Invalid username or image URL')
 
         # :no_entry: emoji
         emoji = 'https://emojipedia-us.s3.amazonaws.com/thumbs/240/twitter/' \
@@ -139,11 +136,6 @@ class Memes:
         fnt = ImageFont.truetype('Arial.ttf', floor(arg.size[0] / 4))
         d = ImageDraw.Draw(large_image)
 
-        name = special_cases.get(
-            name,
-            re.sub(r'\W', '', name).lower()
-        )
-
         message = f'#blame{name}'
         tW, tH = d.textsize(message, fnt)
 
@@ -174,7 +166,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         # Floor is
-        place_centered_text("The floor is "+thefloor, (360, 45), draw, font, 70, Black)
+        place_centered_text("The floor is " + thefloor, (340, 70), draw, font, 70, Black)
 
         # Person's head
         pos = ((150, 145), (480, 160))
@@ -236,9 +228,9 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 50)
         draw = ImageDraw.Draw(meme)
 
-        pos = ((485, 65 if isinstance(person, str) else 75), (780, 300))
-        place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (180, 180), 20)
-        place_centered_content(trash, pos[1], draw, font, 10, Black, meme, (250, 250), -10)
+        pos = ((485, 90 if isinstance(person, str) else 165), (780, 300))
+        place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (200, 200), 20)
+        place_centered_content(trash, pos[1], draw, font, 15, Black, meme, (250, 250), -10)
 
         # == Sending ==
         bio = io.BytesIO()
