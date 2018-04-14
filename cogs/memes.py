@@ -23,6 +23,13 @@ async def download(url):
             return io.BytesIO(await r.read())
 
 
+def imgbio(img):
+    bio = io.BytesIO()
+    img.save(bio, 'PNG')
+    bio.seek(0)
+    return bio
+
+
 def place_centered_text(text, pos, draw, font, wrap, color):
     x, y = pos
     lines = textwrap.wrap(text, width=wrap)
@@ -72,9 +79,7 @@ class RichArgument(commands.Converter):
         # Image
         if re.fullmatch(reimageurl, argument):
             img = await download(argument.strip('<>'))
-            img = Image.open(img)
-
-            return img.convert('RGBA')
+            return Image.open(img).convert('RGBA')
 
         # Text
         else:
@@ -93,13 +98,13 @@ class Memes:
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
     async def blame(self, ctx, *, arg=None):
-        """Blame everyone! Defaults to this bot's author perryprog"""
+        """Blame a person. Defaults to this bot's original author perryprog"""
         # Hardcoded because I want to be blamed even in forks ;)
-        arg = await RichArgument().convert(ctx, arg or '280001404020588544')
         name = arg or 'perry'
+        arg = await RichArgument().convert(ctx, arg or '280001404020588544')
 
         if isinstance(arg, str):
-            return await ctx.send('Invalid username or image URL')
+            return await ctx.send('Invalid username')
 
         # :no_entry: emoji
         emoji = 'https://emojipedia-us.s3.amazonaws.com/thumbs/240/twitter/' \
@@ -151,12 +156,8 @@ class Memes:
             fill=(255,) * 4
         )
 
-        bio = io.BytesIO()
-        large_image.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='blame.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='blame.png'))
 
-    # noinspection PyPep8Naming,PyUnresolvedReferences
     @commands.command(aliases=['thefloor', 'the_floor'])
     async def floor(self, ctx, person: RichArgument, *, thefloor):
         """Generate a the floor is lava meme"""
@@ -177,11 +178,7 @@ class Memes:
             else:
                 place_centered_image(person, pos[i], meme, size[i])
 
-        # == Sending ==
-        bio = io.BytesIO()
-        meme.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='floor.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='floor.png'))
 
     @commands.command(aliases=['highway'])
     async def car(self, ctx, driver: RichArgument,
@@ -194,30 +191,22 @@ class Memes:
 
         pos = ((365, 465), (210, 150), (420, 150))
         place_centered_content(driver, pos[0], draw, font, 25, White, meme, (50, 50))
-        place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (110, 110))
-        place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (110, 110))
+        place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (100, 100))
+        place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (120, 120))
 
-        # == Sending ==
-        bio = io.BytesIO()
-        meme.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='car.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='car.png'))
 
     @commands.command()
-    async def wheeze(self, ctx, *, message: str):
+    async def wheeze(self, ctx, *, thing: RichArgument):
         """Generate a wheeze meme"""
 
         meme = Image.open('memes/wheeze.png')
         draw = ImageDraw.Draw(meme)
         font = ImageFont.truetype('Arial.ttf', 20)
 
-        draw.text((34, 483), message, font=font, fill=Black)
+        place_centered_content(thing, (90, 490), draw, font, 20, Black, meme, (100, 100))
 
-        # == Sending ==
-        bio = io.BytesIO()
-        meme.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='wheeze.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='wheeze.png'))
 
     # noinspection PyUnresolvedReferences
     @commands.command(aliases=['garbage'])
@@ -232,11 +221,7 @@ class Memes:
         place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (200, 200), 20)
         place_centered_content(trash, pos[1], draw, font, 15, Black, meme, (250, 250), -10)
 
-        # == Sending ==
-        bio = io.BytesIO()
-        meme.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='trash.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='trash.png'))
 
     @commands.command()
     async def captcha(self, ctx, img: RichArgument, *, message=None):
@@ -261,11 +246,7 @@ class Memes:
 
         d.text((51, 90), name, font=fnt, fill=(255,) * 3)
 
-        # == Sending ==
-        bio = io.BytesIO()
-        meme.save(bio, 'PNG')
-        bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='captcha.png'))
+        await ctx.send(file=discord.File(imgbio(meme), filename='captcha.png'))
 
 
 def setup(bot):
