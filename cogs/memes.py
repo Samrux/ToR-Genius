@@ -30,7 +30,7 @@ def place_centered_text(text, pos, draw, font, wrap, color):
 
     for line in lines:
         width, height = font.getsize(line)
-        x -= width // 2
+        x = pos[0] - width // 2
         draw.text((x, y), line, font=font, fill=color)
         y += height
 
