@@ -31,10 +31,9 @@ def imgbio(img):
 
 
 def getimgname(url):
-    try:
-        return re.findall(r'[^/]+(?:png|jpg|jpeg)/?$', url)[0].strip('/')
-    except IndexError:  # ¯\_(ツ)_/¯
-        return 'Image'
+    match = re.findall(r'[^/]+(?:png|jpg|jpeg)/?$', url)  # Finds URL end
+    match = re.sub(r'\.[^.]+/?$', '', match[0]) if match else 'Image'  # Removes file extension
+    return match
 
 
 def place_centered_text(text, pos, draw, font, wrap, color):
