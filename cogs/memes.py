@@ -37,8 +37,8 @@ async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=N
         if imgsize is not None:
             content = content.resize(imgsize)
         if imgrot is not None:
-            content = content.rotate(imgrot, expand=False)
-        image.paste(content, (x-imgsize[0]//2, y-imgsize[1]//2))
+            content = content.rotate(imgrot, expand=True)
+        image.paste(content, (x-imgsize[0]//2, y-imgsize[1]//2), content)
 
 
 # Image link, username as avatar, or text
@@ -83,7 +83,7 @@ class Memes:
 
         Will also accept image urls ending in jpg, png, and jpeg."""
         # hardcoded because I want to be blamed even in forks ;)
-        arg, name = arg or await RichArgument.convert(ctx, '280001404020588544')
+        arg, name = arg or await RichArgument().convert(ctx, '280001404020588544')
         # special cases for usernames
         special_cases = {
             'perryprog': 'perry',
@@ -159,7 +159,7 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 30)
         draw = ImageDraw.Draw(meme)
 
-        await place_centered(thefloor, meme, draw, font, 200, 25, 65, (0,)*3)
+        await place_centered(thefloor, meme, draw, font, (200, 25), 65, (0,0,0))
 
         # == Avatars ==
         first = person.resize((20, 20))
