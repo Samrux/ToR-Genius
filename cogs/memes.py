@@ -9,6 +9,9 @@ from PIL import Image, ImageFont, ImageDraw
 from discord.ext import commands
 
 
+Black = (0, 0, 0)
+White = (255, 255, 255)
+
 # from https://stackoverflow.com/questions/169625/regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
 imageurl = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
 reimageurl = re.compile(imageurl, re.IGNORECASE)
@@ -20,28 +23,39 @@ async def download(url):
             return io.BytesIO(await r.read())
 
 
-async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=None, imgrot=None):
+def place_centered_text(text, pos, draw, font, wrap, color):
     x, y = pos
+    lines = textwrap.wrap(text, width=wrap)
+    y -= sum(font.getsize(l)[1] for l in lines) // 2
 
+    for line in lines:
+        width, height = font.getsize(line)
+        x -= width // 2
+        draw.text((x, y), line, font=font, fill=color)
+        y += height
+
+
+def place_centered_image(img, pos, base, size=None, rotation=None):
+    x, y = pos
+    w, h = size
+
+    if size is not None:
+        img = img.resize(img)
+    if rotation is not None:
+        img = img.rotate(rotation, expand=True)
+    base.paste(img, (x - w//2, y - h//2), img)
+
+
+def place_centered_content(content, pos,
+                           draw, txtfont, txtwrap, txtcolor,
+                           baseimg, imgsize=None, imgrotation=None):
     if isinstance(content, str):
-        lines = textwrap.wrap(content, width=wrap)
-        y -= sum(font.getsize(l)[1] for l in lines) // 2
-
-        for line in lines:
-            width, height = font.getsize(line)
-            x -= width // 2
-            draw.text((x, y), line, font=font, fill=color)
-            y += height
-
+        place_centered_text(content, draw, txtfont, pos, txtwrap, txtcolor)
     else:
-        if imgsize is not None:
-            content = content.resize(imgsize)
-        if imgrot is not None:
-            content = content.rotate(imgrot, expand=True)
-        image.paste(content, (x-imgsize[0]//2, y-imgsize[1]//2), content)
+        place_centered_image(content, baseimg, pos, imgsize, imgrotation)
 
 
-# Image link, username as avatar, or text
+# Image link, user avatar, or text
 class RichArgument(commands.Converter):
     async def convert(self, ctx, argument):
         # Avatar
@@ -159,13 +173,17 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 30)
         draw = ImageDraw.Draw(meme)
 
-        await place_centered(thefloor, meme, draw, font, (200, 25), 65, (0,0,0))
+        # Floor is
+        await place_centered_text("The floor is "+thefloor, (360, 45), draw, font, 70, Black)
 
-        # == Avatars ==
-        first = person.resize((20, 20))
-        second = person.resize((40, 40))
-        meme.paste(first, (143, 135))
-        meme.paste(second, (465, 133))
+        # Person's head
+        pos = ((150, 145), (480, 160))
+        size = ((20, 20), (40, 40))
+        for i in range(2):
+            if isinstance(person, str):
+                await place_centered_text(person, pos[i], draw, font, 20, Black)
+            else:
+                await place_centered_image(person, pos[i], meme, size[i])
 
         # == Sending ==
         bio = io.BytesIO()
@@ -174,17 +192,18 @@ class Memes:
         await ctx.send(file=discord.File(bio, filename='floor.png'))
 
     @commands.command(aliases=['highway'])
-    async def car(self, ctx, driver: RichArgument, first_option, second_option):
+    async def car(self, ctx, driver: RichArgument,
+                  first_option: RichArgument, second_option: RichArgument):
         """Generate a highway exit meme. Use quotes for sentences"""
 
         meme = Image.open('memes/highway.jpg')
         font = ImageFont.truetype('Arial.ttf', 22)
         draw = ImageDraw.Draw(meme)
-        color = (255, 255, 255)
 
-        await place_centered(first_option, meme, draw, font, (210, 150), 9, color)
-        await place_centered(second_option, meme, draw, font, (420, 150), 12, color)
-        await place_centered(driver, meme, draw, font, (365, 465), 25, color, (50, 50))
+        pos = ((365, 465), (210, 150), (420, 150))
+        await place_centered_content(driver, pos[0], draw, font, 25, White, meme, (50, 50))
+        await place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (110, 110))
+        await place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (110, 110))
 
         # == Sending ==
         bio = io.BytesIO()
@@ -194,13 +213,13 @@ class Memes:
 
     @commands.command()
     async def wheeze(self, ctx, *, message: str):
-        """Generate a wheeze meme."""
+        """Generate a wheeze meme"""
 
         meme = Image.open('memes/wheeze.png')
         draw = ImageDraw.Draw(meme)
         font = ImageFont.truetype('Arial.ttf', 20)
 
-        draw.text((34, 483), message, font=font, fill=(0, 0, 0))
+        draw.text((34, 483), message, font=font, fill=Black)
 
         # == Sending ==
         bio = io.BytesIO()
@@ -210,15 +229,16 @@ class Memes:
 
     # noinspection PyUnresolvedReferences
     @commands.command(aliases=['garbage'])
-    async def trash(self, ctx, first: RichArgument, *, second: RichArgument):
+    async def trash(self, ctx, person: RichArgument, *, trash: RichArgument):
         """Generate a taking out the trash meme."""
 
         meme = Image.open('memes/garbage.jpg').convert('RGBA')
         font = ImageFont.truetype('Arial.ttf', 50)
         draw = ImageDraw.Draw(meme)
 
-        await place_centered(first, meme, draw, font, (485, 65), 10, (255, 255, 255), (180, 180), 20)
-        await place_centered(second, meme, draw, font, (780, 290), 10, (0, 0, 0), (250, 250), -10)
+        pos = ((485, 65 if isinstance(person, str) else 75), (780, 300))
+        await place_centered_content(person, pos[0], draw, font, 10, (180,)*3, meme, (180, 180), 20)
+        await place_centered_content(trash, pos[1], draw, font, 10, Black, meme, (250, 250), -10)
 
         # == Sending ==
         bio = io.BytesIO()
