@@ -24,7 +24,6 @@ async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=N
     x, y = pos
 
     if isinstance(content, str):
-        print('whee')
         lines = textwrap.wrap(content, width=wrap)
         y -= sum(font.getsize(l)[1] for l in lines) // 2
 
@@ -38,7 +37,7 @@ async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=N
         if imgsize is not None:
             content = content.resize(imgsize)
         if imgrot is not None:
-            content = content.rotate(imgrot, expand=True)
+            content = content.rotate(imgrot, expand=False)
         image.paste(content, (x-imgsize[0]//2, y-imgsize[1]//2))
 
 
