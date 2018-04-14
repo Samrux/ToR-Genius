@@ -158,7 +158,7 @@ class Memes:
             message, font=font, fill=(255,)*4
         )
 
-        await ctx.send(file=discord.File(imgbio(meme), filename='blame.png'))
+        await ctx.send(file=discord.File(imgbio(large_image), filename='blame.png'))
 
     @commands.command(aliases=['thefloor', 'the_floor'])
     async def floor(self, ctx, person: RichArgument, *, thefloor):
@@ -229,7 +229,7 @@ class Memes:
     async def captcha(self, ctx, img, *, message=None):
         """Generate a select all <blank>"""
 
-        name = message or getimgname(img) if re.fullmatch(reimageurl, img) else img
+        message = message or getimgname(img) if re.fullmatch(reimageurl, img) else img
         img = await RichArgument().convert(ctx, img)
 
         if isinstance(img, str):
@@ -246,7 +246,7 @@ class Memes:
         # == Text ==
         font = ImageFont.truetype('Arial.ttf', 30)
         draw = ImageDraw.Draw(meme)
-        draw.text((51, 90), name, font=font, fill=White)
+        draw.text((51, 90), message, font=font, fill=White)
 
         await ctx.send(file=discord.File(imgbio(meme), filename='captcha.png'))
 
