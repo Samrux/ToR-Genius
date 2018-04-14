@@ -32,8 +32,8 @@ def imgbio(img):
 
 def getimgname(url):
     try:
-        return re.findall(r'/.*\.(?:jpg|png|jpeg)', url)[0]
-    except IndexError: # ¯\_(ツ)_/¯
+        return re.findall(r'[^/]+(png|jpg|jpeg)/?$', url)[0].strip('/')
+    except IndexError:  # ¯\_(ツ)_/¯
         return 'Image'
 
 
