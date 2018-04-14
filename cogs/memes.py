@@ -48,11 +48,11 @@ def place_centered_image(img, pos, base, size=None, rotation=None):
 
 def place_centered_content(content, pos,
                            draw, txtfont, txtwrap, txtcolor,
-                           baseimg, imgsize=None, imgrotation=None):
+                           base, imgsize=None, imgrotation=None):
     if isinstance(content, str):
-        place_centered_text(content, draw, txtfont, pos, txtwrap, txtcolor)
+        place_centered_text(content, pos, draw, txtfont, txtwrap, txtcolor)
     else:
-        place_centered_image(content, baseimg, pos, imgsize, imgrotation)
+        place_centered_image(content, pos, base, imgsize, imgrotation)
 
 
 # Image link, user avatar, or text
