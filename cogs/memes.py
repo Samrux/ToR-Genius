@@ -174,16 +174,16 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         # Floor is
-        await place_centered_text("The floor is "+thefloor, (360, 45), draw, font, 70, Black)
+        place_centered_text("The floor is "+thefloor, (360, 45), draw, font, 70, Black)
 
         # Person's head
         pos = ((150, 145), (480, 160))
         size = ((20, 20), (40, 40))
         for i in range(2):
             if isinstance(person, str):
-                await place_centered_text(person, pos[i], draw, font, 20, Black)
+                place_centered_text(person, pos[i], draw, font, 20, Black)
             else:
-                await place_centered_image(person, pos[i], meme, size[i])
+                place_centered_image(person, pos[i], meme, size[i])
 
         # == Sending ==
         bio = io.BytesIO()
@@ -201,9 +201,9 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         pos = ((365, 465), (210, 150), (420, 150))
-        await place_centered_content(driver, pos[0], draw, font, 25, White, meme, (50, 50))
-        await place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (110, 110))
-        await place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (110, 110))
+        place_centered_content(driver, pos[0], draw, font, 25, White, meme, (50, 50))
+        place_centered_content(first_option, pos[1], draw, font, 9, White, meme, (110, 110))
+        place_centered_content(second_option, pos[2], draw, font, 12, White, meme, (110, 110))
 
         # == Sending ==
         bio = io.BytesIO()
@@ -237,8 +237,8 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         pos = ((485, 65 if isinstance(person, str) else 75), (780, 300))
-        await place_centered_content(person, pos[0], draw, font, 10, (180,)*3, meme, (180, 180), 20)
-        await place_centered_content(trash, pos[1], draw, font, 10, Black, meme, (250, 250), -10)
+        place_centered_content(person, pos[0], draw, font, 10, (180,)*3, meme, (180, 180), 20)
+        place_centered_content(trash, pos[1], draw, font, 10, Black, meme, (250, 250), -10)
 
         # == Sending ==
         bio = io.BytesIO()
