@@ -160,7 +160,7 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 30)
         draw = ImageDraw.Draw(meme)
 
-        place_centered(thefloor, meme, draw, font, 200, 25, 65, (0,)*3)
+        await place_centered(thefloor, meme, draw, font, 200, 25, 65, (0,)*3)
 
         # == Avatars ==
         first = person.resize((20, 20))
@@ -183,9 +183,9 @@ class Memes:
         draw = ImageDraw.Draw(meme)
         color = (255, 255, 255)
 
-        place_centered(first_option, meme, draw, font, (210, 150), 9, color)
-        place_centered(second_option, meme, draw, font, (420, 150), 12, color)
-        place_centered(driver, meme, draw, font, (365, 465), 25, color, (50, 50))
+        await place_centered(first_option, meme, draw, font, (210, 150), 9, color)
+        await place_centered(second_option, meme, draw, font, (420, 150), 12, color)
+        await place_centered(driver, meme, draw, font, (365, 465), 25, color, (50, 50))
 
         # == Sending ==
         bio = io.BytesIO()
@@ -218,8 +218,8 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 50)
         draw = ImageDraw.Draw(meme)
 
-        place_centered(first, meme, draw, font, (485, 65), 10, (255, 255, 255), (180, 180), 20)
-        place_centered(second, meme, draw, font, (780, 290), 10, (0, 0, 0), (250, 250), -10)
+        await place_centered(first, meme, draw, font, (485, 65), 10, (255, 255, 255), (180, 180), 20)
+        await place_centered(second, meme, draw, font, (780, 290), 10, (0, 0, 0), (250, 250), -10)
 
         # == Sending ==
         bio = io.BytesIO()
