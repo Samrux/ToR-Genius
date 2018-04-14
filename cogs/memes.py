@@ -237,7 +237,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         pos = ((485, 65 if isinstance(person, str) else 75), (780, 300))
-        place_centered_content(person, pos[0], draw, font, 10, (180,)*3, meme, (180, 180), 20)
+        place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (180, 180), 20)
         place_centered_content(trash, pos[1], draw, font, 10, Black, meme, (250, 250), -10)
 
         # == Sending ==
