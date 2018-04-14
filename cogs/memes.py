@@ -8,7 +8,10 @@ import discord
 from PIL import Image, ImageFont, ImageDraw
 from discord.ext import commands
 
-from cogs.utils.paginator import Pages
+
+# from https://stackoverflow.com/questions/169625/regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
+imageurl = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
+reimageurl = re.compile(imageurl, re.IGNORECASE)
 
 
 async def download(url):
@@ -17,132 +20,51 @@ async def download(url):
             return io.BytesIO(await r.read())
 
 
-class AvatarOrOnlineImage(commands.Converter):
+async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=None, imgrot=None):
+    x, y = pos
+
+    if isinstance(content, str):
+        lines = textwrap.wrap(content, width=wrap)
+        y -= sum(font.getsize(l)[1] for l in lines) // 2
+
+        for line in lines:
+            width, height = font.getsize(line)
+            x -= width // 2
+            draw.text((x, y), line, font=font, fill=color)
+            y += height
+
+    else:
+        if imgsize is not None:
+            content = content.resize(imgsize)
+        if imgrot is not None:
+            content = content.rotate(imgrot, expand=True)
+        image.paste(content, (x-imgsize[0]//2, y-imgsize[1]//2))
+
+
+# Image link, username as avatar, or text
+class RichArgument(commands.Converter):
     async def convert(self, ctx, argument):
+        # Avatar
         try:
-            possible_member = await commands.MemberConverter() \
-                .convert(ctx, argument)
+            possible_member = await commands.MemberConverter().convert(ctx, argument)
             url = possible_member.avatar_url_as(format='png')
             url = url.replace('gif', 'png').strip('<>')
-
             img = await download(url)
+            return Image.open(img).convert('RGBA')
 
-            img = Image.open(img)
-
-            return img.convert('RGBA')
         except commands.BadArgument:
             pass
 
-            # from https://stackoverflow.com/questions/169625/
-            # regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
-            # (Sorry about breaking the URL)
-
-            # will add more image formats as time goes on
-        regex = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.' \
-                r'(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
-
-        regex = re.compile(regex, re.IGNORECASE)
-
-        if re.fullmatch(regex, argument):
+        # Image
+        if re.fullmatch(reimageurl, argument):
             img = await download(argument.strip('<>'))
-
             img = Image.open(img)
 
             return img.convert('RGBA')
+
+        # Text
         else:
-            # must be text
             return argument
-
-
-# The floor is good naming
-class AvatarOrOnlineImageOrText(commands.Converter):
-    async def convert(self, ctx, argument):
-        try:
-            possible_member = await commands.MemberConverter() \
-                .convert(ctx, argument)
-            url = possible_member.avatar_url_as(format='png')
-            url = url.replace('gif', 'png').strip('<>')
-
-            img = await download(url)
-
-            img = Image.open(img)
-
-            return img.convert('RGBA'), possible_member.name
-        except commands.BadArgument:
-            pass
-
-            # from https://stackoverflow.com/questions/169625/
-            # regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
-            # (Sorry about breaking the URL)
-
-            # will add more image formats as time goes on
-        regex = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.' \
-                r'(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
-
-        regex = re.compile(regex, re.IGNORECASE)
-
-        if re.fullmatch(regex, argument.split(' ')[0]):
-            img = await download(argument.split(' ')[0].strip('<>'))
-
-            img = Image.open(img)
-
-            text = ' '.join(argument.split(' ')[1:])
-            if not text:
-                raise commands.BadArgument('No text supplied for image')
-            return img.convert('RGBA'), text
-        else:
-            raise commands.BadArgument(
-                "That URL doesn't seem to lead to a valid image"
-            )
-
-
-class LinkOrAvatar(commands.Converter):
-    special_cases = {
-        'itsthejoker': 'https://avatars0.githubusercontent.com/u/5179553'
-    }
-
-    async def convert(self, ctx, argument):
-        try:
-            possible_member = await commands.MemberConverter() \
-                .convert(ctx, argument)
-            if possible_member.name not in self.special_cases:
-                url = possible_member.avatar_url_as(format='png')
-                url = url.replace('gif', 'png').strip('<>')
-            else:
-                url = self.special_cases[possible_member.name]
-
-            img = await download(url)
-
-            img = Image.open(img)
-
-            return img.convert('RGBA'), possible_member.name
-        except commands.BadArgument:
-            pass
-
-        # from https://stackoverflow.com/questions/169625/
-        # regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
-        # (Sorry about breaking the URL)
-
-        # will add more image formats as time goes on
-        regex = r'<?(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*\.' \
-                r'(?:jpg|png|jpeg))(?:\?([^#]*))?(?:#(.*))?>?'
-
-        regex = re.compile(regex, re.IGNORECASE)
-
-        if re.fullmatch(regex, argument.split(' ')[0]):
-            img = await download(argument.split(' ')[0].strip('<>'))
-
-            img = Image.open(img)
-
-            text = ' '.join(argument.split(' ')[1:])
-            if not text:
-                raise commands.BadArgument('No text supplied for image')
-            return img.convert('RGBA'), text
-        else:
-            raise commands.BadArgument(
-                "That URL doesn't seem to lead to a valid image"
-                # if possible_member else "I couldn't find that user"
-            )
 
 
 class Memes:
@@ -156,13 +78,12 @@ class Memes:
 
     # noinspection PyUnresolvedReferences,PyPep8Naming
     @commands.command()
-    async def blame(self, ctx, *, img: AvatarOrOnlineImageOrText = None):
+    async def blame(self, ctx, *, arg: RichArgument = None):
         """Blame everyone! Defaults to perryprog.
 
         Will also accept image urls ending in jpg, png, and jpeg."""
         # hardcoded because I want to be blamed even in forks ;)
-        img, name = img or await LinkOrAvatar() \
-            .convert(ctx, '280001404020588544')
+        arg, name = arg or await RichArgument.convert(ctx, '280001404020588544')
         # special cases for usernames
         special_cases = {
             'perryprog': 'perry',
@@ -177,17 +98,17 @@ class Memes:
         emoji = emoji.convert('RGBA')
 
         # make the image 3 times larger than the avatar
-        large_image = Image.new('RGBA', [3 * x for x in img.size], (0,) * 4)
+        large_image = Image.new('RGBA', [3 * x for x in arg.size], (0,) * 4)
         lW, lH = large_image.size
-        W, H = img.size
+        W, H = arg.size
         # the center box for the avatar
         box = (W, H, W * 2, H * 2)
 
         # make the emoji 20% bigger than the avatar
-        emoji = emoji.resize([floor(x * 1.2) for x in img.size])
+        emoji = emoji.resize([floor(x * 1.2) for x in arg.size])
         eW, eH = emoji.size
 
-        large_image.paste(img.copy(), box)
+        large_image.paste(arg.copy(), box)
         large_image.paste(
             emoji,
 
@@ -201,7 +122,7 @@ class Memes:
         )
 
         # make the font size relative to the avatar size
-        fnt = ImageFont.truetype('Arial.ttf', floor(img.size[0] / 4))
+        fnt = ImageFont.truetype('Arial.ttf', floor(arg.size[0] / 4))
         d = ImageDraw.Draw(large_image)
 
         name = special_cases.get(
@@ -230,182 +151,109 @@ class Memes:
         await ctx.send(file=discord.File(bio, filename='blame.png'))
 
     # noinspection PyPep8Naming,PyUnresolvedReferences
-    @commands.command(aliases=['floor'])
-    async def the_floor(self, ctx, img: AvatarOrOnlineImageOrText, *, what):
-        """Generate a the floor is lava meme."""
+    @commands.command(aliases=['thefloor', 'the_floor'])
+    async def floor(self, ctx, person: RichArgument, *, thefloor):
+        """Generate a the floor is lava meme"""
 
-        img, _ = img
+        meme = Image.open('memes/floor.png')
+        font = ImageFont.truetype('Arial.ttf', 30)
+        draw = ImageDraw.Draw(meme)
 
-        if len(what) > 179:
-            return await ctx.send("The floor isn't that long. (max 179 chars)")
-
-        meme_format = Image.open('memes/floor.png')
-
-        # == Text ==
-        fnt = ImageFont.truetype('Arial.ttf', 30)
-        d = ImageDraw.Draw(meme_format)
-
-        margin = 20
-        offset = 25
-        for line in textwrap.wrap(f'The floor is {what}', width=65):
-            d.text((margin, offset), line, font=fnt, fill=(0,) * 3)
-            offset += fnt.getsize(line)[1]
+        place_centered(thefloor, meme, draw, font, 200, 25, 65, (0,)*3)
 
         # == Avatars ==
-        first = img.resize((20, 20))
-        second = img.resize((40, 40))
-
-        meme_format.paste(first, (143, 135))
-        meme_format.paste(second, (465, 133))
+        first = person.resize((20, 20))
+        second = person.resize((40, 40))
+        meme.paste(first, (143, 135))
+        meme.paste(second, (465, 133))
 
         # == Sending ==
         bio = io.BytesIO()
-        meme_format.save(bio, 'PNG')
+        meme.save(bio, 'PNG')
         bio.seek(0)
         await ctx.send(file=discord.File(bio, filename='floor.png'))
 
     @commands.command(aliases=['highway'])
-    async def car(self, ctx, driver: AvatarOrOnlineImage,
-                      first_option, second_option):
+    async def car(self, ctx, driver: RichArgument, first_option, second_option):
         """Generate a highway exit meme. Use quotes for sentences"""
 
-        meme_format = Image.open('memes/highway.jpg')
+        meme = Image.open('memes/highway.jpg')
+        font = ImageFont.truetype('Arial.ttf', 22)
+        draw = ImageDraw.Draw(meme)
+        color = (255, 255, 255)
 
-        fnt = ImageFont.truetype('Arial.ttf', 22)
-        d = ImageDraw.Draw(meme_format)
-
-        # == Text one ==
-        lines = textwrap.wrap(first_option, width=9)
-        y = 150 - sum(fnt.getsize(l)[1] for l in lines)//2
-        for line in lines:
-            width, height = fnt.getsize(line)
-            x = 210 - width//2
-            d.text((x, y), line, font=fnt, fill=(255,) * 3)
-            y += height
-
-        # == Text two ==
-        lines = textwrap.wrap(second_option, width=12)
-        y = 150 - sum(fnt.getsize(l)[1] for l in lines)//2
-        for line in lines:
-            width, height = fnt.getsize(line)
-            x = 420 - width//2
-            d.text((x, y), line, font=fnt, fill=(255,) * 3)
-            y += height
-
-        # == Driver  ==
-        if isinstance(driver, str):
-            lines = textwrap.wrap(driver, width=25)
-            y = 465 - sum(fnt.getsize(l)[1] for l in lines)//2
-            for line in lines:
-                width, height = fnt.getsize(line)
-                x = 360 - width//2
-                d.text((x, y), line, font=fnt, fill=(255,) * 3) 
-                y += height
-        else:
-            meme_format.paste(driver.resize((50, 50)), (340, 440))
+        place_centered(first_option, meme, draw, font, (210, 150), 9, color)
+        place_centered(second_option, meme, draw, font, (420, 150), 12, color)
+        place_centered(driver, meme, draw, font, (365, 465), 25, color, (50, 50))
 
         # == Sending ==
         bio = io.BytesIO()
-        meme_format.save(bio, 'PNG')
+        meme.save(bio, 'PNG')
         bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='floor.png'))
+        await ctx.send(file=discord.File(bio, filename='car.png'))
 
     @commands.command()
     async def wheeze(self, ctx, *, message: str):
         """Generate a wheeze meme."""
 
-        meme_format = Image.open('memes/wheeze.png')
+        meme = Image.open('memes/wheeze.png')
+        draw = ImageDraw.Draw(meme)
+        font = ImageFont.truetype('Arial.ttf', 20)
 
-        # == Text ==
-        fnt = ImageFont.truetype('Arial.ttf', 20)
-        d = ImageDraw.Draw(meme_format)
-
-        d.text((34, 483), message, font=fnt, fill=(0,) * 3)
+        draw.text((34, 483), message, font=font, fill=(0, 0, 0))
 
         # == Sending ==
         bio = io.BytesIO()
-        meme_format.save(bio, 'PNG')
+        meme.save(bio, 'PNG')
         bio.seek(0)
         await ctx.send(file=discord.File(bio, filename='wheeze.png'))
 
     # noinspection PyUnresolvedReferences
     @commands.command(aliases=['garbage'])
-    async def trash(self, ctx, first: AvatarOrOnlineImage,
-                    *, second: AvatarOrOnlineImage):
+    async def trash(self, ctx, first: RichArgument, *, second: RichArgument):
         """Generate a taking out the trash meme."""
 
-        meme_format = Image.open('memes/garbage.jpg')
-        meme_format = meme_format.convert('RGBA')
+        meme = Image.open('memes/garbage.jpg').convert('RGBA')
+        font = ImageFont.truetype('Arial.ttf', 50)
+        draw = ImageDraw.Draw(meme)
 
-        # == Text/Avatar 1 ==
-        if isinstance(first, str):
-            fnt = ImageFont.truetype('Arial.ttf', 50)
-            d = ImageDraw.Draw(meme_format)
-
-            lines = textwrap.wrap(first, width=10)
-            y = 65 - sum(fnt.getsize(l)[1] for l in lines)//2
-            for line in lines:
-                width, height = fnt.getsize(line)
-                x = 485 - width//2
-                d.text((x, y), line, font=fnt, fill=(255,) * 3)
-                y += height
-        else:
-            first = first.resize((180, 180))
-            first = first.rotate(20, expand=True)
-            meme_format.paste(first, (390, 15), first)
-
-        # == Text/Avatar 2 ==
-        if isinstance(second, str):
-            fnt = ImageFont.truetype('Arial.ttf', 50)
-            d = ImageDraw.Draw(meme_format)
-
-            lines = textwrap.wrap(second, width=10)
-            y = 290 - sum(fnt.getsize(l)[1] for l in lines)//2
-            for line in lines:
-                width, height = fnt.getsize(line)
-                x = 780 - width//2
-                d.text((x, y), line, font=fnt, fill=(0,) * 3)
-                y += height
-        else:
-            second = second.resize((250, 250))
-            second = second.rotate(-10, expand=True)
-            meme_format.paste(second, (620, 150), second)
+        place_centered(first, meme, draw, font, (485, 65), 10, (255, 255, 255), (180, 180), 20)
+        place_centered(second, meme, draw, font, (780, 290), 10, (0, 0, 0), (250, 250), -10)
 
         # == Sending ==
         bio = io.BytesIO()
-        meme_format.save(bio, 'PNG')
+        meme.save(bio, 'PNG')
         bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='floor.png'))
+        await ctx.send(file=discord.File(bio, filename='trash.png'))
 
     @commands.command()
-    async def captcha(self, ctx, img: AvatarOrOnlineImageOrText,
-                      *, message=None):
+    async def captcha(self, ctx, img: RichArgument, *, message=None):
         """Generate a select all <blank>"""
 
         img, name = img
         name = re.sub(r'\W', '', name).lower()
         name = message or name
 
-        meme_format = Image.open('memes/captcha.png')
+        meme = Image.open('memes/captcha.png')
 
         # == Images ==
         img = img.resize((129, 129))
 
         for x_mul in range(3):
             for y_mul in range(3):
-                meme_format.paste(img, (27 + 129 * x_mul, 173 + 129 * y_mul))
+                meme.paste(img, (27 + 129 * x_mul, 173 + 129 * y_mul))
 
         # == Text ==
         fnt = ImageFont.truetype('Arial.ttf', 30)
-        d = ImageDraw.Draw(meme_format)
+        d = ImageDraw.Draw(meme)
 
         d.text((51, 90), name, font=fnt, fill=(255,) * 3)
 
         # == Sending ==
         bio = io.BytesIO()
-        meme_format.save(bio, 'PNG')
+        meme.save(bio, 'PNG')
         bio.seek(0)
-        await ctx.send(file=discord.File(bio, filename='floor.png'))
+        await ctx.send(file=discord.File(bio, filename='captcha.png'))
 
 
 def setup(bot):
