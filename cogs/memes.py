@@ -24,6 +24,7 @@ async def place_centered(content, image, draw, font, pos, wrap, color, imgsize=N
     x, y = pos
 
     if isinstance(content, str):
+        print('whee')
         lines = textwrap.wrap(content, width=wrap)
         y -= sum(font.getsize(l)[1] for l in lines) // 2
 

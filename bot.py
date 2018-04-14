@@ -40,7 +40,6 @@ initial_extensions = [
     'cogs.jokes',
     'cogs.custom',
     'cogs.logging',
-    'cogs.tracking'
 ]
 
 
