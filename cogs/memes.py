@@ -31,7 +31,9 @@ def imgbio(img):
 
 
 def getimgname(url):
-    return re.findall(r'.*\.(?:jpg|png|jpeg)', url)[0]
+    match = re.findall(r'.*\.(?:jpg|png|jpeg)', url)[0]
+    print(match)
+    return match
 
 
 def place_centered_text(text, pos, draw, font, wrap, color):
@@ -229,7 +231,7 @@ class Memes:
     async def captcha(self, ctx, img, *, message=None):
         """Generate a select all <blank>"""
 
-        message = message or getimgname(img) if re.fullmatch(reimageurl, img) else img
+        message = message or (getimgname(img) if re.fullmatch(reimageurl, img) else img)
         img = await RichArgument().convert(ctx, img)
 
         if isinstance(img, str):
