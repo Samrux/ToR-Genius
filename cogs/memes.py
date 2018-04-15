@@ -13,6 +13,7 @@ from discord.ext import commands
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
 
 # from https://stackoverflow.com/questions/169625/regex-to-check-if-valid-url-that-ends-in-jpg-png-or-gif
 image_url = re.compile(
@@ -180,10 +181,7 @@ class Memes:
         pos = ((150, 145), (480, 160))
         size = ((20, 20), (40, 40))
         for i in range(2):
-            if isinstance(person, str):
-                place_centered_text(person, pos[i], draw, font, 20, BLACK)
-            else:
-                place_centered_image(person, pos[i], meme, size[i])
+            place_centered_content(person, pos[i], draw, font, 20, BLUE, meme, size[i])
 
         await ctx.send(file=discord.File(img_bio(meme), filename='floor.png'))
 
@@ -225,7 +223,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         pos = ((485, 90 if isinstance(person, str) else 165), (780, 300))
-        place_centered_content(person, pos[0], draw, font, 10, (0, 0, 255), meme, (200, 200), 20)
+        place_centered_content(person, pos[0], draw, font, 10, BLUE, meme, (200, 200), 20)
         place_centered_content(trash, pos[1], draw, font, 15, BLACK, meme, (250, 250), -10)
 
         await ctx.send(file=discord.File(img_bio(meme), filename='trash.png'))
