@@ -36,7 +36,7 @@ def img_bio(img):
 
 
 def get_img_name(url):
-    match = re.findall(r'[^/]+(?:png|jpg|jpeg)/?$', url)  # Finds URL end
+    match = re.findall(r'[^/]+(?:png|jpg|jpeg)/?', url)  # Finds URL end
     match = re.sub(r'\.[^.]+/?$', '', match[0]) if match else 'Image'  # Removes file extension
     return match
 
@@ -175,7 +175,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         # Floor is
-        place_centered_text("The floor is " + thefloor, (340, 65), draw, font, 40, BLACK)
+        place_centered_text("The floor is " + thefloor, (340, 65), draw, font, 45, BLACK)
 
         # Person's head
         pos = ((150, 145), (480, 160))
