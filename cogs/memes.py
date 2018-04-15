@@ -175,7 +175,7 @@ class Memes:
         draw = ImageDraw.Draw(meme)
 
         # Floor is
-        place_centered_text("The floor is " + thefloor, (340, 65), draw, font, 38, BLACK)
+        place_centered_text("The floor is " + thefloor, (340, 65), draw, font, 40, BLACK)
 
         # Person's head
         pos = ((150, 145), (480, 160))
