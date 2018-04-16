@@ -222,7 +222,7 @@ class Memes:
         font = ImageFont.truetype('Arial.ttf', 50)
         draw = ImageDraw.Draw(meme)
 
-        pos = ((485, 90 if isinstance(person, str) else 140), (780, 300))
+        pos = ((485, 90 if isinstance(person, str) else 110), (780, 300))
         place_centered_content(person, pos[0], draw, font, 10, BLUE, meme, (200, 200), 20)
         place_centered_content(trash, pos[1], draw, font, 15, BLACK, meme, (250, 250), -10)
 
