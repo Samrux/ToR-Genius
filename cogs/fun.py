@@ -106,9 +106,9 @@ class Fun:
         except Exception as e:
             await ctx.send(str(e))
         else:
-            posts = data["data"]["children"]
-            img = posts[random.randrange(len(posts))]["data"]["link_url"]
-            await ctx.send(img)
+            posts = data['data']['children']
+            post = posts[random.randrange(len(posts))]['data']
+            await ctx.send(f"**{post['link_title']}**\n{post['link_url']}")
 
     @commands.command()
     async def choose(self, ctx, *choices: commands.clean_content):
