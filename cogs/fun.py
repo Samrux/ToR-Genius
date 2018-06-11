@@ -97,16 +97,15 @@ class Fun:
     @commands.command(aliases=['reddit'])
     async def sub(self, ctx, subreddit: commands.clean_content):
         try:
-            response = request.urlopen(
+            req = request.Request(
                 f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20",
                 headers={'User-agent': 'Sambot'}
             )
+            with urllib.request.urlopen(req) as response:
+                data = json.loads(response.read())
         except Exception as e:
             await ctx.send(str(e))
         else:
-            #context = ssl._create_unverified_context()
-            data = json.loads(response.read())
-
             posts = data["data"]["children"]
             img = posts[random.randrange(len(posts))]["data"]["link_url"]
             await ctx.send(img)
