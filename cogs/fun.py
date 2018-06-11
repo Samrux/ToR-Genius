@@ -101,7 +101,7 @@ class Fun:
                 f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20",
                 headers={'User-agent': 'Sambot'}
             )
-            with urllib.request.urlopen(req) as response:
+            with request.urlopen(req) as response:
                 data = json.loads(response.read())
         except Exception as e:
             await ctx.send(str(e))
