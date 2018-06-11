@@ -4,7 +4,10 @@
 import asyncio
 import logging
 import random
+import ssl
+import json
 
+from urllib import request
 from discord.ext import commands
 
 from cogs.admin import gist_upload
@@ -90,6 +93,17 @@ class Fun:
             f'{commands.clean_content().convert(user.name)}\'s display name is '
             f'{commands.clean_content().convert(user.display_name)}.'
         )
+
+    @commands.command(aliases=['reddit'])
+    async def sub(self, ctx, subreddit: commands.clean_content):
+        url = f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20"
+        #context = ssl._create_unverified_context()
+        response = request.urlopen(url))#context=context)
+        data = json.loads(response.read())
+
+        posts = data["data"]["children"]
+        img = posts[randrange(len(posts))]["data"]["link_url"]
+        await ctx.send(img)
 
     @commands.command()
     async def choose(self, ctx, *choices: commands.clean_content):
