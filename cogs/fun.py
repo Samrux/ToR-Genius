@@ -97,7 +97,10 @@ class Fun:
     @commands.command(aliases=['reddit'])
     async def sub(self, ctx, subreddit: commands.clean_content):
         try:
-            response = request.urlopen(f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20")
+            response = request.urlopen(
+                f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20",
+                headers={'User-agent': 'Sambot'}
+            )
         except Exception as e:
             await ctx.send(str(e))
         else:
