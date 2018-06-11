@@ -98,7 +98,7 @@ class Fun:
     async def sub(self, ctx, subreddit: commands.clean_content):
         url = f"https://www.reddit.com/r/{subreddit}/comments.json?limit=20"
         #context = ssl._create_unverified_context()
-        response = request.urlopen(url))#context=context)
+        response = request.urlopen(url)#context=context)
         data = json.loads(response.read())
 
         posts = data["data"]["children"]
